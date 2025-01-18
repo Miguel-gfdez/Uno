@@ -114,62 +114,55 @@ class Main:
 
             if num_jugadores > 0:
                 for i in range(num_jugadores):
-                    # Excluir los jugadores ya seleccionados en otros selectboxes
-                    opciones_filtradas = [opcion for opcion in opciones_selectbox if opcion not in selectbox_values]
-
-                    # Usar un selectbox con búsqueda de jugadores previos o escribir para filtrar
                     nombre = st.selectbox(
                         f"Selecciona el jugador {i + 1}",
-                        options=opciones_filtradas,  # Solo mostrar jugadores no seleccionados previamente
+                        options=opciones_selectbox,  # Mostrar todas las opciones
                         key=f"jugador_{i+1}"
                     )
 
                     selectbox_values.append(nombre)  # Guardar la selección para evitar duplicados
 
                     if nombre == "Añadir nuevo jugador...":
-                        # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
                         nuevo_nombre = st.text_input(f"Introduce el nombre del jugador {i + 1}")
-                        if nuevo_nombre and nuevo_nombre.capitalize() not in jugadores_historial + nombres_jugadores:
-                            # Verificar si el nuevo nombre ya está en el archivo JSON
-                            if nuevo_nombre.capitalize() not in gestor_jugadores.jugadores:
-                                # Si el nombre es único, agregarlo
-                                #gestor_jugadores.agregar_jugador(nuevo_nombre.capitalize())
-                                jugadores_historial.append(nuevo_nombre.capitalize())  # Añadir al historial para reutilizarlo
-                                nombres_jugadores.append(nuevo_nombre.capitalize())
-                            else:
-                                st.warning(f"{nuevo_nombre.capitalize()} ya está en el juego y no se ha agregado.")
-                        elif nuevo_nombre:
-                            st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
-                    elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
-                        # Si se selecciona un jugador del historial y no está en la lista
-                        if nombre.capitalize() not in gestor_jugadores.jugadores:
-                            nombres_jugadores.append(nombre.capitalize())
+                        if nuevo_nombre and nuevo_nombre.strip() != "" and nuevo_nombre not in jugadores_historial + nombres_jugadores:
+                            nombres_jugadores.append(nuevo_nombre)  # Añadir el nombre tal como se introdujo
+                            if "jugadores" not in st.session_state:
+                                st.session_state.jugadores = {}  # Inicializar la sesión de jugadores si no existe
+                            st.session_state.jugadores[nuevo_nombre] = 0  # Inicializar el puntaje del jugador
+                    elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre and nombre not in nombres_jugadores:
+                        nombres_jugadores.append(nombre)  # Añadir el nombre tal como se seleccionó
+                        if "jugadores" not in st.session_state:
+                            st.session_state.jugadores = {}  # Inicializar la sesión de jugadores si no existe
+                        st.session_state.jugadores[nombre] = 0  # Inicializar el puntaje del jugador
 
             # Verificar si hay duplicados antes de habilitar el botón
-            duplicados = [jugador for jugador in nombres_jugadores if nombres_jugadores.count(jugador) > 1]
-            if duplicados:
-                # Mostrar un mensaje de advertencia si hay duplicados
-                st.warning(f"Los siguientes jugadores están repetidos: {', '.join(set(duplicados))}. Corrige antes de continuar.")
-                # Deshabilitar el botón si hay duplicados
-                st.button("Añadir Jugadores", disabled=True)
+            if len(nombres_jugadores) != num_jugadores or "Selecciona un jugador o añade uno nuevo" in nombres_jugadores:
+                st.warning(f"Existen jugadores repetidos.")
             else:
                 # Mostrar el botón para agregar jugadores solo si no hay duplicados
                 if st.button("Añadir Jugadores"):
                     # Agregar los jugadores al gestor si no están en el archivo JSON
                     for nombre in nombres_jugadores:
                         if nombre not in gestor_jugadores.jugadores:
+                            nombre = nombre.capitalize()
                             gestor_jugadores.agregar_jugador(nombre)  # Llamamos al método para agregar jugadores
+                            
                         else:
                             st.warning(f"{nombre} ya está en el juego y no se ha agregado nuevamente.")
+                    st.experimental_set_query_params(page="menu uno", juego=juego)
+                    st.rerun()
+        else:
+            # Si ya existe el archivo JSON, se omite la entrada de jugadores y se muestra el menú principal
+            if os.path.exists(gestor_jugadores.archivo_json) or len(gestor_jugadores.jugadores) > 0:
+                if page == "uno":
+                    gestor_UNO.menu_Uno(juego)
+                elif page == "uno flip":
+                    gestor_UNO.menu_Uno(juego)
+                elif page == "dos":
+                    gestor_UNO.menu_Uno(juego)
 
-        # Si ya existe el archivo JSON, se omite la entrada de jugadores y se muestra el menú principal
-        if os.path.exists(gestor_jugadores.archivo_json) or len(gestor_jugadores.jugadores) > 0:
-            if page=="uno":
-                gestor_UNO.menu_Uno(juego)
-            elif page=="uno flip":
-                gestor_UNO.menu_Uno(juego)
-            elif page=="dos":
-                gestor_UNO.menu_Uno(juego)
+
+
 
 
 # Punto de entrada principal
@@ -194,6 +187,9 @@ if __name__ == "__main__":
         gestor_jugadores.menu_gestion_jugadores()
     # elif page == "gestionar_partidas":
     #     gestor_jugadores.menu_gestion_partidas()
+    elif page == "menu uno":
+        juego = query_params.get("juego", [""])[0]
+        gestor_UNO.menu_Uno(juego)
     elif page == "uno":
         juego = page.upper()
         st.title("Bienvenidos al UNO")

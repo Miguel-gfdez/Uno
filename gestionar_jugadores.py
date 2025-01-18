@@ -18,8 +18,9 @@ class GestorJugadores:
             st.warning(f"{nombre} ya existe.")
         else:
             self.jugadores[nombre] = 0
+            st.write(self.jugadores)
             self.guardar_jugadores()
-            st.success(f"Jugador {nombre} agregado.")
+            st.success(f"{nombre} agregado.")
 
     def guardar_jugadores(self):
         """Guarda los jugadores en el archivo JSON."""
@@ -27,12 +28,27 @@ class GestorJugadores:
             json.dump(self.jugadores, archivo, indent=4)
 
     def cargar_jugadores(self):
-        """Carga los jugadores desde el archivo JSON."""
+        """Carga los jugadores desde el archivo JSON si existe, si no inicializa un diccionario vacío."""
         if os.path.exists(self.archivo_json):
             with open(self.archivo_json, "r") as archivo:
                 self.jugadores = json.load(archivo)
         else:
-            self.jugadores = {}
+            self.jugadores = {}  # Inicializa como un diccionario vacío si no existe el archivo
+
+        return self.jugadores  # Asegúrate de devolver los jugadores cargados
+
+    def eliminar_jugador(self, nombre_jugador):
+        """Elimina un jugador de la lista de jugadores y del archivo JSON."""
+        if nombre_jugador in self.jugadores:
+            # Eliminar jugador del diccionario de jugadores
+            del self.jugadores[nombre_jugador]
+            
+            # Guardar los cambios en el archivo JSON
+            self.guardar_jugadores()
+            st.write(self.jugadores)
+            st.success(f"{nombre_jugador} eliminado correctamente.")
+        else:
+            st.warning(f"{nombre_jugador} no existe en la lista.")
 
     def mostrar_jugadores(self):
         """Muestra los jugadores y sus puntos en la interfaz de Streamlit."""
@@ -50,11 +66,11 @@ class GestorJugadores:
             return
 
         if nuevo_nombre in self.jugadores:
-            st.warning(f"Ya existe un jugador con el nombre {nuevo_nombre}.")
+            st.warning(f"Ya existe un jugador {nuevo_nombre}.")
             return
 
         self.jugadores[nuevo_nombre] = self.jugadores.pop(nombre_actual)
-        st.success(f"El nombre del jugador ha sido modificado de {nombre_actual} a {nuevo_nombre}.")
+        st.success(f"{nombre_actual} ha sido modificado a {nuevo_nombre}.")
         self.guardar_jugadores()
 
 
@@ -224,20 +240,36 @@ class GestorJugadores:
             """, unsafe_allow_html=True)
 
         # Dos botones para las opciones
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
+        # Agregar jugador
         with col1:
-            if st.button("Agregar jugador"):
-                nombre = st.text_input("Introduce el nombre del nuevo jugador")
-                if st.button("Agregar"):
-                    self.agregar_jugador(nombre)
+            nombre = st.text_input("Introduce el nombre del nuevo jugador").capitalize()
 
+            if st.button("Agregar jugador"):
+                if nombre.strip() != "":  # Verificar si el nombre no está vacío
+                    self.agregar_jugador(nombre)
+                    st.session_state["jugador_agregado"] = nombre  # Guardar el estado en session_state para que no se reinicie
+
+        # Modificar nombre jugador
         with col2:
+            nombre_actual = st.text_input("Introduce el nombre actual del jugador").capitalize()
+            nuevo_nombre = st.text_input("Introduce el nuevo nombre del jugador").capitalize()
+
             if st.button("Modificar nombre jugador"):
-                nombre_actual = st.text_input("Introduce el nombre actual del jugador")
-                nuevo_nombre = st.text_input("Introduce el nuevo nombre del jugador")
-                if st.button("Modificar"):
+                if nombre_actual.strip() != "" and nuevo_nombre.strip() != "":
                     self.modificar_nombre_jugador(nombre_actual, nuevo_nombre)
+                    st.session_state["jugador_modificado"] = (nombre_actual, nuevo_nombre)  # Guardar el estado de la modificación
+
+            if "jugador_modificado" in st.session_state:
+                nombre_actual, nuevo_nombre = st.session_state["jugador_modificado"]
+                #st.success(f"Jugador {nombre_actual} modificado a {nuevo_nombre}.")
+
+        with col3:
+            nombre_jugador = st.text_input("Introduce el nombre del jugador a eliminar").capitalize()
+            if st.button("Eliminar jugador"):
+                if nombre_jugador.strip() != "":  # Verificar que el nombre no esté vacío
+                    self.eliminar_jugador(nombre_jugador)
 
         # Botón para regresar al menú principal
         if st.button("Volver al Menú Principal"):

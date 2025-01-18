@@ -53,6 +53,10 @@ class UNO:
         #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
 
     def seleccionar_ganador(self):
+        modalidad = st.session_state.modalidad
+        if modalidad == "Libre":
+            st.warning("Modalidad no disponible")
+
         """Juega rondas hasta que haya un ganador."""
         if st.session_state.juego == "UNO":
             self.valores = self.valores_UNO
@@ -96,13 +100,21 @@ class UNO:
 
         # Mostrar el selectbox fuera del bucle, para seleccionar al ganador de la ronda
         puntos_ronda = 0
+        # Asegúrate de que los jugadores se carguen antes de intentar acceder a ellos
+        jugadores = self.gestor_jugadores.cargar_jugadores()  # Cargar jugadores
+
+        # Verifica si hay jugadores cargados, si no hay, muestra un mensaje de advertencia
+        if not jugadores:
+            st.warning("No hay jugadores cargados. Por favor, añada jugadores antes de continuar.")
+            return  # Salir de la función si no hay jugadores disponibles
+
         ganador = st.selectbox(
-                "Selecciona el ganador de la ronda:",
-                ["Selecciona un Jugador..."] + list(self.gestor_jugadores.jugadores.keys()),  # El primer elemento es una cadena vacía
-                key="ganador_selectbox"
-            )
+            "Selecciona el ganador de la ronda:",
+            ["Selecciona un Jugador..."] + list(jugadores.keys()),  # El primer elemento es una cadena vacía
+            key="ganador_selectbox"
+        )
         
-        modalidad = st.session_state.modalidad
+        st.session_state.jugadores = jugadores
 
         if modalidad == "Incremento":
             nombres_botones = list(self.valores.keys())
@@ -175,14 +187,20 @@ class UNO:
                     st.write(f"Puntos Totales: {sum(self.valores[key] * value for key, value in st.session_state.cartas_seleccionadas.items())}")
 
         col1, col2 = st.columns(2)  # Crear dos columnas para los botones
-
-        # Botón "Cancelar" (siempre visible)
         with col2:
             if st.button("Cancelar"):
+                for jugador in st.session_state.jugadores:
+                    st.session_state.jugadores[jugador] = 0
+                self.gestor_jugadores.jugadores = st.session_state.jugadores
+                self.gestor_jugadores.guardar_jugadores()
+                del st.session_state["jugadores"]
+                del st.session_state["modalidad"]
+                del st.session_state["parametros"]
+                del st.session_state["contador_partidas"]
+                del st.session_state["ganadores_lista"]
+                del st.session_state["juego"]
                 st.experimental_set_query_params(page="main")
                 st.rerun()
-
-        # Botón "Confirmar Datos"
         try:
             with col1:
                 if st.button("Confirmar Datos"):
@@ -206,6 +224,7 @@ class UNO:
                         pass
         except Exception as e:
             st.warning("Por favor, seleccione un jugador válido para continuar.")
+            st.warning(e)
                 
     def procesar_ronda(self, ganador, puntos_ronda):
         n_partidas = int(st.session_state.parametros[1]) if st.session_state.parametros[1] is not None else None
@@ -255,7 +274,7 @@ class UNO:
                     tabla_partidas.loc[i, ganador] = 'X'
 
                 # Mostrar la tabla actualizada
-                st.dataframe(tabla_partidas)
+                st.dataframe(tabla_partidas.fillna(" "))
 
         elif modalidad == "Incremento":
             # Verificar si el jugador ha alcanzado los puntos máximos
@@ -359,9 +378,12 @@ class UNO:
             if st.button("Confirmar"):                
                 # Guardamos los valores en session_state
                 st.session_state.modalidad = modalidad
-                st.session_state.parametros = [puntos, partidas]
-                st.experimental_set_query_params(page="seleccionar ganador")
-                st.rerun()
+                if modalidad == "Libre":
+                    st.warning("Modalidad no disponible")
+                else:
+                    st.session_state.parametros = [puntos, partidas]
+                    st.experimental_set_query_params(page="seleccionar ganador")
+                    st.rerun()
 
         if st.button("Volver al Menú Principal"):
             st.experimental_set_query_params(page="main")

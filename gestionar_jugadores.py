@@ -18,7 +18,6 @@ class GestorJugadores:
             st.warning(f"{nombre} ya existe.")
         else:
             self.jugadores[nombre] = 0
-            st.write(self.jugadores)
             self.guardar_jugadores()
             st.success(f"{nombre} agregado.")
 
@@ -213,6 +212,7 @@ class GestorJugadores:
 
 
     def menu_gestion_jugadores(self):
+        query_params = st.query_params
         """Menú para gestionar jugadores."""
         st.title("Gestión de Jugadores")
 
@@ -263,6 +263,7 @@ class GestorJugadores:
 
             if "jugador_modificado" in st.session_state:
                 nombre_actual, nuevo_nombre = st.session_state["jugador_modificado"]
+                #st.success(f"Jugador {nombre_actual} modificado a {nuevo_nombre}.")
 
         with col3:
             nombre_jugador = st.text_input("Introduce el nombre del jugador a eliminar").capitalize()
@@ -272,9 +273,8 @@ class GestorJugadores:
 
         # Botón para regresar al menú principal
         if st.button("Volver al Menú Principal"):
-            st.session_state.page = "main"  # Cambiar la página en session_state
+            st.query_params(page="main")
             st.rerun()
-
 
     def menu_gestion_partidas(self):
         st.title("Gestión de Partidas")

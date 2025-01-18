@@ -10,26 +10,28 @@ class Main:
         self.gestor_UNO_FLIP = gestor_UNO_FLIP
         self.gestor_DOS = gestor_DOS
         self.juego = ""
+        
 
     def menu_principal(self):
+        query_params = st.query_params
         """Menú principal del programa adaptado a Streamlit con botones apilados y estilizados."""
         st.title("Menú Principal")
 
         # Botones estilizados y navegación
         if st.button("UNO"):
-            st.experimental_set_query_params(page="uno")
+            st.query_params(page="uno")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
         
         if st.button("UNO FLIP"):
-            st.experimental_set_query_params(page="uno flip")
+            st.query_params(page="uno flip")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
         
         if st.button("DOS"):
-            st.experimental_set_query_params(page="dos")
+            st.query_params(page="dos")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
 
         if st.button("Gestionar jugadores"):
-            st.experimental_set_query_params(page="gestionar_jugadores")
+            st.query_params(page="gestionar_jugadores")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
         
         # if st.button("Gestionar partidas"):
@@ -39,7 +41,7 @@ class Main:
         if st.button("Salir"):
             if os.path.exists("jugadores.json"):
                 os.remove("jugadores.json")
-            st.experimental_set_query_params(page="inicio")
+            st.query_params(page="inicio")
             st.rerun()
             st.stop()
 
@@ -174,7 +176,7 @@ if __name__ == "__main__":
     gestor_DOS = UNO(gestor_jugadores)
 
     # Obtener parámetros de la URL
-    query_params = st.query_params()
+    query_params = st.query_params
     page = query_params.get("page", ["inicio"])[0]
 
     # Redirigir según el parámetro `page`

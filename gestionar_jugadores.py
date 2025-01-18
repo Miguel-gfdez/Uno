@@ -213,6 +213,7 @@ class GestorJugadores:
 
 
     def menu_gestion_jugadores(self):
+        query_params = st.query_params
         """Menú para gestionar jugadores."""
         st.title("Gestión de Jugadores")
 
@@ -273,100 +274,100 @@ class GestorJugadores:
 
         # Botón para regresar al menú principal
         if st.button("Volver al Menú Principal"):
-            st.experimental_set_query_params(page="main")
+            st.query_params(page="main")
             st.rerun()
 
     def menu_gestion_partidas(self):
         st.title("Gestión de Partidas")
         # Estilo para los botones
-        st.markdown("""
-            <style>
-                .css-1emrehy.edgvbvh3 { 
-                    font-size: 50px; 
-                    height: 60px; 
-                    width: 100%;
-                    border-radius: 10px;
-                }
-                .stButton > button {
-                    width: 100%;
-                    height: 60px;
-                    border-radius: 10px;
-                    font-size: 18px;
-                    background-color: #4CAF50;
-                    color: white;
-                }
-                .stButton > button:hover {
-                    background-color: #45a049;
-                }
-            </style>
-            """, unsafe_allow_html=True)
+        # st.markdown("""
+        #     <style>
+        #         .css-1emrehy.edgvbvh3 { 
+        #             font-size: 50px; 
+        #             height: 60px; 
+        #             width: 100%;
+        #             border-radius: 10px;
+        #         }
+        #         .stButton > button {
+        #             width: 100%;
+        #             height: 60px;
+        #             border-radius: 10px;
+        #             font-size: 18px;
+        #             background-color: #4CAF50;
+        #             color: white;
+        #         }
+        #         .stButton > button:hover {
+        #             background-color: #45a049;
+        #         }
+        #     </style>
+        #     """, unsafe_allow_html=True)
         
-        # Dos botones para las opciones
-        col1, col2 = st.columns(2)
+        # # Dos botones para las opciones
+        # col1, col2 = st.columns(2)
 
-        with col1:
-            # Crear una lista de jugadores del historial (si existen)
-            juegos_historial = list(self.obtener_juegos_historial())
-            jugadores_historial = list(self.obtener_jugadores_historial())  # Asumiendo que esta función devuelve una lista de jugadores
-            # Opciones para el selectbox: empezamos con un mensaje neutral
-            opciones_juegos = ["Selecciona un juego o añade uno nuevo"] + juegos_historial + ["Añadir nuevo juego..."]
-            opciones_jugadores = ["Selecciona un jugador o añade uno nuevo"] + jugadores_historial + ["Añadir nuevo jugador..."]
+        # with col1:
+        #     # Crear una lista de jugadores del historial (si existen)
+        #     juegos_historial = list(self.obtener_juegos_historial())
+        #     jugadores_historial = list(self.obtener_jugadores_historial())  # Asumiendo que esta función devuelve una lista de jugadores
+        #     # Opciones para el selectbox: empezamos con un mensaje neutral
+        #     opciones_juegos = ["Selecciona un juego o añade uno nuevo"] + juegos_historial + ["Añadir nuevo juego..."]
+        #     opciones_jugadores = ["Selecciona un jugador o añade uno nuevo"] + jugadores_historial + ["Añadir nuevo jugador..."]
 
-            # Usar un selectbox con búsqueda de jugadores previos o escribir para filtrar
-            juego = st.selectbox(
-                f"Selecciona el juego",
-                options=opciones_juegos,  # Solo mostrar jugadores no seleccionados previamente
-                key=f"juego"
-            )
+        #     # Usar un selectbox con búsqueda de jugadores previos o escribir para filtrar
+        #     juego = st.selectbox(
+        #         f"Selecciona el juego",
+        #         options=opciones_juegos,  # Solo mostrar jugadores no seleccionados previamente
+        #         key=f"juego"
+        #     )
             
-            if juego == "Añadir nuevo juego...":
-                # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
-                nuevo_nombre = st.text_input(f"Introduce el nombre del juego")
-                if nuevo_nombre and nuevo_nombre.capitalize() not in juegos_historial:
-                    juegos_historial.append(nuevo_nombre.capitalize())
-                    nombres_jugadores.append(nuevo_nombre.capitalize())
-                elif nuevo_nombre:
-                    st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
-            elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
-                # Si se selecciona un jugador del historial y no está en la lista
-                if nombre.capitalize() not in self.jugadores:
-                    nombres_jugadores.append(nombre.capitalize())
+        #     if juego == "Añadir nuevo juego...":
+        #         # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
+        #         nuevo_nombre = st.text_input(f"Introduce el nombre del juego")
+        #         if nuevo_nombre and nuevo_nombre.capitalize() not in juegos_historial:
+        #             juegos_historial.append(nuevo_nombre.capitalize())
+        #             nombres_jugadores.append(nuevo_nombre.capitalize())
+        #         elif nuevo_nombre:
+        #             st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
+        #     elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
+        #         # Si se selecciona un jugador del historial y no está en la lista
+        #         if nombre.capitalize() not in self.jugadores:
+        #             nombres_jugadores.append(nombre.capitalize())
 
-            nombre = st.selectbox(
-                f"Selecciona el jugador",
-                options=opciones_jugadores,  # Solo mostrar jugadores no seleccionados previamente
-                key=f"jugador"
-            )
+        #     nombre = st.selectbox(
+        #         f"Selecciona el jugador",
+        #         options=opciones_jugadores,  # Solo mostrar jugadores no seleccionados previamente
+        #         key=f"jugador"
+        #     )
 
-            if nombre == "Añadir nuevo jugador...":
-                # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
-                nuevo_nombre = st.text_input(f"Introduce el nombre del jugador")
-                if nuevo_nombre and nuevo_nombre.capitalize() not in jugadores_historial:
-                    # Verificar si el nuevo nombre ya está en el archivo JSON
-                    if nuevo_nombre.capitalize() not in self.jugadores:
-                        # Si el nombre es único, agregarlo
-                        #gestor_jugadores.agregar_jugador(nuevo_nombre.capitalize())
-                        jugadores_historial.append(nuevo_nombre.capitalize())  # Añadir al historial para reutilizarlo
-                        nombres_jugadores.append(nuevo_nombre.capitalize())
-                    else:
-                        st.warning(f"{nuevo_nombre.capitalize()} ya está en el juego y no se ha agregado.")
-                elif nuevo_nombre:
-                    st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
-            elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
-                # Si se selecciona un jugador del historial y no está en la lista
-                if nombre.capitalize() not in self.jugadores:
-                    nombres_jugadores.append(nombre.capitalize())
+        #     if nombre == "Añadir nuevo jugador...":
+        #         # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
+        #         nuevo_nombre = st.text_input(f"Introduce el nombre del jugador")
+        #         if nuevo_nombre and nuevo_nombre.capitalize() not in jugadores_historial:
+        #             # Verificar si el nuevo nombre ya está en el archivo JSON
+        #             if nuevo_nombre.capitalize() not in self.jugadores:
+        #                 # Si el nombre es único, agregarlo
+        #                 #gestor_jugadores.agregar_jugador(nuevo_nombre.capitalize())
+        #                 jugadores_historial.append(nuevo_nombre.capitalize())  # Añadir al historial para reutilizarlo
+        #                 nombres_jugadores.append(nuevo_nombre.capitalize())
+        #             else:
+        #                 st.warning(f"{nuevo_nombre.capitalize()} ya está en el juego y no se ha agregado.")
+        #         elif nuevo_nombre:
+        #             st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
+        #     elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
+        #         # Si se selecciona un jugador del historial y no está en la lista
+        #         if nombre.capitalize() not in self.jugadores:
+        #             nombres_jugadores.append(nombre.capitalize())
 
-        with col2:
-            if st.button("Modificar nombre jugador"):
-                nombre_actual = st.text_input("Introduce el nombre actual del jugador")
-                nuevo_nombre = st.text_input("Introduce el nuevo nombre del jugador")
-                if st.button("Modificar"):
-                    self.modificar_nombre_jugador(nombre_actual, nuevo_nombre)
+        # with col2:
+        #     if st.button("Modificar nombre jugador"):
+        #         nombre_actual = st.text_input("Introduce el nombre actual del jugador")
+        #         nuevo_nombre = st.text_input("Introduce el nuevo nombre del jugador")
+        #         if st.button("Modificar"):
+        #             self.modificar_nombre_jugador(nombre_actual, nuevo_nombre)
 
         # Botón para regresar al menú principal
         if st.button("Volver al Menú Principal"):
-            st.experimental_set_query_params(page="main")
+            st.query_params(page="main")
             st.rerun()
 
 

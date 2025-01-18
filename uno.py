@@ -53,6 +53,7 @@ class UNO:
         #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
 
     def seleccionar_ganador(self):
+        query_params = st.query_params
         modalidad = st.session_state.modalidad
         if modalidad == "Libre":
             st.warning("Modalidad no disponible")
@@ -199,7 +200,7 @@ class UNO:
                 del st.session_state["contador_partidas"]
                 del st.session_state["ganadores_lista"]
                 del st.session_state["juego"]
-                st.experimental_set_query_params(page="main")
+                st.query_params(page="main")
                 st.rerun()
         try:
             with col1:
@@ -212,13 +213,13 @@ class UNO:
                         st.session_state.jugadores[ganador] += 1
                         self.gestor_jugadores.jugadores = st.session_state.jugadores
                         self.gestor_jugadores.guardar_jugadores()
-                        st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
+                        st.query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
                         st.rerun()
                     elif modalidad == "Incremento":
                         st.session_state.jugadores[ganador] += puntos_ronda
                         self.gestor_jugadores.jugadores = st.session_state.jugadores
                         self.gestor_jugadores.guardar_jugadores()
-                        st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
+                        st.query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
                         st.rerun()
                     elif modalidad == "Libre":
                         pass
@@ -227,6 +228,7 @@ class UNO:
             st.warning(e)
                 
     def procesar_ronda(self, ganador, puntos_ronda):
+        query_params = st.query_params
         n_partidas = int(st.session_state.parametros[1]) if st.session_state.parametros[1] is not None else None
         puntos_maximos = int(st.session_state.parametros[0]) if st.session_state.parametros[0] is not None else None
         puntos_ronda = int(puntos_ronda)
@@ -264,7 +266,7 @@ class UNO:
                     del st.session_state["contador_partidas"]
                     del st.session_state["ganadores_lista"]
                     del st.session_state["juego"]
-                    st.experimental_set_query_params(page="main")
+                    st.query_params(page="main")
                     st.rerun()
                 else:
                     return
@@ -308,7 +310,7 @@ class UNO:
                     del st.session_state["contador_partidas"]
                     del st.session_state["ganadores_lista"]
                     del st.session_state["juego"]
-                    st.experimental_set_query_params(page="main")
+                    st.query_params(page="main")
                     st.rerun()
                 else:
                     return
@@ -326,13 +328,14 @@ class UNO:
 
         if st.button("Continuar"):
             st.session_state.contador_partidas += 1
-            st.experimental_set_query_params(page="seleccionar ganador")
+            st.query_params(page="seleccionar ganador")
             st.rerun()
         else:
             return
 
 
     def menu_Uno(self, juego):
+        query_params = st.query_params
         st.session_state.juego = juego
         self.valores = self.valores_UNO if juego=="UNO" else self.valores_UNO_FLIP if juego=="UNO FLIP" else self.valores_DOS
         puntos = 0
@@ -382,11 +385,11 @@ class UNO:
                     st.warning("Modalidad no disponible")
                 else:
                     st.session_state.parametros = [puntos, partidas]
-                    st.experimental_set_query_params(page="seleccionar ganador")
+                    st.query_params(page="seleccionar ganador")
                     st.rerun()
 
         if st.button("Volver al Menú Principal"):
-            st.experimental_set_query_params(page="main")
+            st.query_params(page="main")
             st.rerun()
 
 

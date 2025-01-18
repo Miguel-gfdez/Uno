@@ -1,7 +1,6 @@
 import streamlit as st
 from uno import UNO
 from gestionar_jugadores import GestorJugadores
-import sys
 import os
 
 class Main:
@@ -32,10 +31,17 @@ class Main:
         if st.button("Gestionar jugadores"):
             st.experimental_set_query_params(page="gestionar_jugadores")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
+        
+        # if st.button("Gestionar partidas"):
+        #     st.experimental_set_query_params(page="gestionar_partidas")
+        #     st.rerun()  # Forzar recarga de la página con los nuevos parámetros
 
         if st.button("Salir"):
-            st.write("\n¡Gracias por jugar! Hasta luego.")
-            sys.exit()
+            if os.path.exists("jugadores.json"):
+                os.remove("jugadores.json")
+            st.experimental_set_query_params(page="inicio")
+            st.rerun()
+            st.stop()
 
         # Estilización adicional para mejorar la apariencia de los botones
         st.markdown("""
@@ -59,6 +65,37 @@ class Main:
                 }
             </style>
             """, unsafe_allow_html=True)
+
+    def inicio(self):
+        # Estilización adicional para mejorar la apariencia de los botones
+        st.markdown("""
+            <style>
+                .css-1emrehy.edgvbvh3 { 
+                    font-size: 50px; 
+                    height: 60px; 
+                    width: 100%;
+                    border-radius: 10px;
+                }
+                .stButton > button {
+                    width: 100%;
+                    height: 60px;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                .stButton > button:hover {
+                    background-color: #45a049;
+                }
+            </style>
+            """, unsafe_allow_html=True)
+        if st.button("INICIAR"):
+            if os.path.exists("jugadores.json"):
+                os.remove("jugadores.json")
+                
+            st.experimental_set_query_params(page="main")
+            st.rerun()
+
 
     def control_jugadores(self, juego):
         # Verificar si el archivo JSON ya existe
@@ -130,36 +167,45 @@ class Main:
             if page=="uno":
                 gestor_UNO.menu_Uno(juego)
             elif page=="uno flip":
-                pass
+                gestor_UNO.menu_Uno(juego)
             elif page=="dos":
-                pass
+                gestor_UNO.menu_Uno(juego)
+
 
 # Punto de entrada principal
 if __name__ == "__main__":
     # Crear instancias de las clases necesarias
     gestor_jugadores = GestorJugadores()
     gestor_UNO = UNO(gestor_jugadores)
-    gestor_UNO_FLIP = UNO(gestor_jugadores)  # Ajusta si `UNO_FLIP` tiene lógica diferente.
-    gestor_DOS = UNO(gestor_jugadores)  # Ajusta si `DOS` tiene lógica diferente.
+    gestor_UNO_FLIP = UNO(gestor_jugadores)
+    gestor_DOS = UNO(gestor_jugadores)
 
     # Obtener parámetros de la URL
     query_params = st.experimental_get_query_params()
-    page = query_params.get("page", ["main"])[0]
+    page = query_params.get("page", ["inicio"])[0]
 
     # Redirigir según el parámetro `page`
     main_app = Main(gestor_jugadores, gestor_UNO, gestor_UNO_FLIP, gestor_DOS)
-    if page == "main":
+    if page == "inicio":
+        main_app.inicio()
+    elif page == "main":
         main_app.menu_principal()
     elif page == "gestionar_jugadores":
         gestor_jugadores.menu_gestion_jugadores()
+    # elif page == "gestionar_partidas":
+    #     gestor_jugadores.menu_gestion_partidas()
     elif page == "uno":
         juego = page.upper()
         st.title("Bienvenidos al UNO")
         main_app.control_jugadores(juego)
     elif page == "uno flip":
+        juego = page.upper()
         st.title("Bienvenidos al UNO FLIP")
+        main_app.control_jugadores(juego)
     elif page == "dos":
+        juego = page.upper()
         st.title("Bienvenidos al DOS")
+        main_app.control_jugadores(juego)
     elif page == "seleccionar ganador":
         gestor_UNO.seleccionar_ganador()
     elif page == "procesar rondas":

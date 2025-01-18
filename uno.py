@@ -1,19 +1,20 @@
 import streamlit as st
-import os
-from gestionar_jugadores import GestorJugadores
 import pandas as pd
-import sys
-import time
 
 
 
 class UNO:
     def __init__(self, gestor_jugadores):
         self.gestor_jugadores = gestor_jugadores
-        self.valores = {
+        self.valores_UNO = {
             "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
             "+2": 20, "BLOQUEO": 20, "DIRECCION": 20, "COLOR": 50, "+4": 50
         }
+        self.valores_UNO_FLIP = {"1":1, "2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "+1":10, "+5":20, "DIRECCION":20, "BLOQUEO":20, "FLIP":20, "RETORNO":30, "COLOR":40, "+2":50, "ELEGIR":60}
+        self.valores_DOS = {"1":1, "2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "COMODIN":20, "#":40}
+        
+
+        self.valores = {}
         self.puntos_maximos = 100
         self.n_partidas = 1
         self.n_personas = 2
@@ -34,10 +35,6 @@ class UNO:
         if "ganadores_lista" not in st.session_state:
             st.session_state.ganadores_lista = []
 
-
-
-
-
     def incremento_parametros(self):
         """Estilo de juego: incremento."""
         puntos_maximos = st.number_input("Introduce la cantidad máxima de puntos:", min_value=100, step=50)
@@ -55,22 +52,38 @@ class UNO:
         return self.n_partidas
         #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
 
-
     def seleccionar_ganador(self):
         """Juega rondas hasta que haya un ganador."""
+        if st.session_state.juego == "UNO":
+            self.valores = self.valores_UNO
+        elif st.session_state.juego == "UNO FLIP":
+            self.valores = self.valores_UNO_FLIP
+        elif st.session_state.juego == "DOS":
+            self.valores = self.valores_DOS
+
+        # Actualizar `cartas_seleccionadas` con los nuevos valores
+        if (
+            "cartas_seleccionadas" not in st.session_state
+            or not isinstance(st.session_state.cartas_seleccionadas, dict)
+            or set(st.session_state.cartas_seleccionadas.keys()) != set(self.valores.keys())
+        ):
+            # Reasignar valores según el juego seleccionado
+            st.session_state.cartas_seleccionadas = {key: 0 for key in self.valores.keys()}
+
+
         st.markdown("""
             <style>
                 .css-1emrehy.edgvbvh3 { 
-                    font-size: 50px; 
+                    font-size: 30px; 
                     height: 60px; 
                     width: 100%;
                     border-radius: 10px;
                 }
                 .stButton > button {
                     width: 100%;
-                    height: 60px;
+                    height: 70px;
                     border-radius: 10px;
-                    font-size: 18px;
+                    font-size: 15px;
                     background-color: #4CAF50;
                     color: white;
                 }
@@ -89,33 +102,42 @@ class UNO:
                 key="ganador_selectbox"
             )
         
-
         modalidad = st.session_state.modalidad
 
         if modalidad == "Incremento":
             nombres_botones = list(self.valores.keys())
+            nombres_botones = [key.replace("#", "&#35;") for key in self.valores.keys()]
+
     
             # Inicializar historial si no existe
             if 'historial' not in st.session_state:
                 st.session_state.historial = []
+            
+            # Calcular el número total de botones y dividir entre dos
+            total_botones = len(nombres_botones)
 
-            # Contenedor para la primera fila de botones
-            fila1 = st.columns(7)
-            for i, col in enumerate(fila1):
-                with col:
-                    if st.button(nombres_botones[i]):
-                        st.session_state.cartas_seleccionadas[nombres_botones[i]] += 1  # Incrementa el valor
-                        # Guardar la acción en el historial
-                        st.session_state.historial.append(('incremento', nombres_botones[i]))
+            mitad = (total_botones + 1) // 2  # Redondear hacia arriba si es impar
 
-            # Contenedor para la segunda fila de botones
-            fila2 = st.columns(7)
-            for i, col in enumerate(fila2):
-                with col:
-                    if st.button(nombres_botones[i + 7]):
-                        st.session_state.cartas_seleccionadas[nombres_botones[i + 7]] += 1  # Incrementa el valor
-                        # Guardar la acción en el historial
-                        st.session_state.historial.append(('incremento', nombres_botones[i + 7]))
+            # Crear la primera fila de botones
+            if mitad > 0:  # Verificar que haya botones en esta fila
+                fila1 = st.columns(mitad)
+                for i, col in enumerate(fila1):
+                    if i < len(nombres_botones):  # Evitar índices fuera de rango
+                        with col:
+                            if st.button(nombres_botones[i]):
+                                st.session_state.cartas_seleccionadas[nombres_botones[i]] += 1
+                                st.session_state.historial.append(('incremento', nombres_botones[i]))
+
+            # Crear la segunda fila de botones
+            restantes = total_botones - mitad
+            if restantes > 0:  # Verificar que haya botones en esta fila
+                fila2 = st.columns(restantes)
+                for i, col in enumerate(fila2):
+                    if i + mitad < len(nombres_botones):  # Evitar índices fuera de rango
+                        with col:
+                            if st.button(nombres_botones[i + mitad]):
+                                st.session_state.cartas_seleccionadas[nombres_botones[i + mitad]] += 1
+                                st.session_state.historial.append(('incremento', nombres_botones[i + mitad]))
 
             # Convertir los valores cartas_seleccionadas a un formato adecuado para mostrar en tabla
             selected_values = list(st.session_state.cartas_seleccionadas.items())  # Convertir a lista de tuplas
@@ -185,8 +207,6 @@ class UNO:
         except Exception as e:
             st.warning("Por favor, seleccione un jugador válido para continuar.")
                 
-
-
     def procesar_ronda(self, ganador, puntos_ronda):
         n_partidas = int(st.session_state.parametros[1]) if st.session_state.parametros[1] is not None else None
         puntos_maximos = int(st.session_state.parametros[0]) if st.session_state.parametros[0] is not None else None
@@ -292,11 +312,10 @@ class UNO:
         else:
             return
 
- 
-
 
     def menu_Uno(self, juego):
         st.session_state.juego = juego
+        self.valores = self.valores_UNO if juego=="UNO" else self.valores_UNO_FLIP if juego=="UNO FLIP" else self.valores_DOS
         puntos = 0
         partidas = 0
         st.markdown("""

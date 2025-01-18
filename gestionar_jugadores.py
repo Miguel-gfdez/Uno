@@ -57,6 +57,9 @@ class GestorJugadores:
         st.success(f"El nombre del jugador ha sido modificado de {nombre_actual} a {nuevo_nombre}.")
         self.guardar_jugadores()
 
+
+
+
     def obtener_jugadores_historial(self):
         """Obtiene todos los jugadores registrados en el archivo historial.json."""
         jugadores = set()  # Usamos un set para evitar duplicados
@@ -64,15 +67,15 @@ class GestorJugadores:
         try:
             with open(self.archivo_historial, "r") as archivo:
                 historial = json.load(archivo)
-                
-                # Iterar sobre las partidas para obtener los jugadores
+
+                # Iterar sobre todos los juegos en el historial (por ejemplo, "UNO", "Incremento")
                 for juego, datos in historial.items():
-                    partidas = datos.get("partidas", {})
-                    
-                    # Iterar sobre los jugadores registrados en cada juego
-                    for jugador in partidas:
-                        jugadores.add(jugador)
-            
+                    # Iterar sobre las modalidades de cada juego (por ejemplo, "Partidas", "Incremento")
+                    for modalidad, partidas in datos.items():
+                        # Iterar sobre los jugadores registrados en cada modalidad
+                        for jugador in partidas:
+                            jugadores.add(jugador)
+
             return list(jugadores)  # Convertir el set a lista para devolverlo
         except FileNotFoundError:
             print("El archivo historial.json no se encuentra.")
@@ -80,6 +83,76 @@ class GestorJugadores:
         except json.JSONDecodeError:
             print("Error al leer el archivo JSON.")
             return []
+
+    def obtener_juegos_historial(self):
+        """Obtiene todos los juegos registrados en el archivo historial.json."""
+        juegos = set()  # Usamos un set para evitar duplicados
+
+        try:
+            with open(self.archivo_historial, "r") as archivo:
+                historial = json.load(archivo)
+
+                # Iterar sobre todos los juegos en el historial (primer nivel)
+                for juego in historial.keys():
+                    juegos.add(juego)
+
+            return list(juegos)  # Convertir el set a lista para devolverlo
+        except FileNotFoundError:
+            print("El archivo historial.json no se encuentra.")
+            return []
+        except json.JSONDecodeError:
+            print("Error al leer el archivo JSON.")
+            return []
+
+    def obtener_modalidades(self, juego):
+        """Obtiene todas las modalidades de un juego registrado en el archivo historial.json."""
+        modalidades = set()  # Usamos un set para evitar duplicados
+
+        try:
+            with open(self.archivo_historial, "r") as archivo:
+                historial = json.load(archivo)
+
+                # Verificar si el juego existe en el historial
+                if juego in historial:
+                    # Iterar sobre las modalidades de ese juego (segundo nivel)
+                    for modalidad in historial[juego].keys():
+                        modalidades.add(modalidad)
+                else:
+                    print(f"El juego {juego} no se encuentra en el historial.")
+
+            return list(modalidades)  # Convertir el set a lista para devolverlo
+        except FileNotFoundError:
+            print("El archivo historial.json no se encuentra.")
+            return []
+        except json.JSONDecodeError:
+            print("Error al leer el archivo JSON.")
+            return []
+
+    def obtener_jugadores_modalidad(self, juego, modalidad):
+        """Obtiene todos los jugadores de una modalidad de un juego específico registrado en el archivo historial.json."""
+        jugadores = set()  # Usamos un set para evitar duplicados
+
+        try:
+            with open(self.archivo_historial, "r") as archivo:
+                historial = json.load(archivo)
+
+                # Verificar si el juego y modalidad existen en el historial
+                if juego in historial and modalidad in historial[juego]:
+                    # Iterar sobre los jugadores de la modalidad seleccionada
+                    jugadores = set(historial[juego][modalidad].keys())
+                else:
+                    print(f"No se encontraron jugadores para el juego {juego} y la modalidad {modalidad}.")
+
+            return list(jugadores)  # Convertir el set a lista para devolverlo
+        except FileNotFoundError:
+            print("El archivo historial.json no se encuentra.")
+            return []
+        except json.JSONDecodeError:
+            print("Error al leer el archivo JSON.")
+            return []
+
+
+
 
     def guardar_historial(self, juego, modalidad, ganador):
         """
@@ -171,6 +244,101 @@ class GestorJugadores:
             st.experimental_set_query_params(page="main")
             st.rerun()
 
+    def menu_gestion_partidas(self):
+        st.title("Gestión de Partidas")
+        # Estilo para los botones
+        st.markdown("""
+            <style>
+                .css-1emrehy.edgvbvh3 { 
+                    font-size: 50px; 
+                    height: 60px; 
+                    width: 100%;
+                    border-radius: 10px;
+                }
+                .stButton > button {
+                    width: 100%;
+                    height: 60px;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                .stButton > button:hover {
+                    background-color: #45a049;
+                }
+            </style>
+            """, unsafe_allow_html=True)
+        
+        # Dos botones para las opciones
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Crear una lista de jugadores del historial (si existen)
+            juegos_historial = list(self.obtener_juegos_historial())
+            jugadores_historial = list(self.obtener_jugadores_historial())  # Asumiendo que esta función devuelve una lista de jugadores
+            # Opciones para el selectbox: empezamos con un mensaje neutral
+            opciones_juegos = ["Selecciona un juego o añade uno nuevo"] + juegos_historial + ["Añadir nuevo juego..."]
+            opciones_jugadores = ["Selecciona un jugador o añade uno nuevo"] + jugadores_historial + ["Añadir nuevo jugador..."]
+
+            # Usar un selectbox con búsqueda de jugadores previos o escribir para filtrar
+            juego = st.selectbox(
+                f"Selecciona el juego",
+                options=opciones_juegos,  # Solo mostrar jugadores no seleccionados previamente
+                key=f"juego"
+            )
+            
+            if juego == "Añadir nuevo juego...":
+                # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
+                nuevo_nombre = st.text_input(f"Introduce el nombre del juego")
+                if nuevo_nombre and nuevo_nombre.capitalize() not in juegos_historial:
+                    juegos_historial.append(nuevo_nombre.capitalize())
+                    nombres_jugadores.append(nuevo_nombre.capitalize())
+                elif nuevo_nombre:
+                    st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
+            elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
+                # Si se selecciona un jugador del historial y no está en la lista
+                if nombre.capitalize() not in self.jugadores:
+                    nombres_jugadores.append(nombre.capitalize())
+
+            nombre = st.selectbox(
+                f"Selecciona el jugador",
+                options=opciones_jugadores,  # Solo mostrar jugadores no seleccionados previamente
+                key=f"jugador"
+            )
+
+            if nombre == "Añadir nuevo jugador...":
+                # Solo mostrar un text_input si se selecciona la opción "Añadir nuevo jugador..."
+                nuevo_nombre = st.text_input(f"Introduce el nombre del jugador")
+                if nuevo_nombre and nuevo_nombre.capitalize() not in jugadores_historial:
+                    # Verificar si el nuevo nombre ya está en el archivo JSON
+                    if nuevo_nombre.capitalize() not in self.jugadores:
+                        # Si el nombre es único, agregarlo
+                        #gestor_jugadores.agregar_jugador(nuevo_nombre.capitalize())
+                        jugadores_historial.append(nuevo_nombre.capitalize())  # Añadir al historial para reutilizarlo
+                        nombres_jugadores.append(nuevo_nombre.capitalize())
+                    else:
+                        st.warning(f"{nuevo_nombre.capitalize()} ya está en el juego y no se ha agregado.")
+                elif nuevo_nombre:
+                    st.warning(f"{nuevo_nombre.capitalize()} ya ha sido añadido o ya existe.")
+            elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre.capitalize() not in nombres_jugadores:
+                # Si se selecciona un jugador del historial y no está en la lista
+                if nombre.capitalize() not in self.jugadores:
+                    nombres_jugadores.append(nombre.capitalize())
+
+        with col2:
+            if st.button("Modificar nombre jugador"):
+                nombre_actual = st.text_input("Introduce el nombre actual del jugador")
+                nuevo_nombre = st.text_input("Introduce el nuevo nombre del jugador")
+                if st.button("Modificar"):
+                    self.modificar_nombre_jugador(nombre_actual, nuevo_nombre)
+
+        # Botón para regresar al menú principal
+        if st.button("Volver al Menú Principal"):
+            st.experimental_set_query_params(page="main")
+            st.rerun()
+
+
+
 
 
 
@@ -178,6 +346,7 @@ def run():
     """Ejecuta la gestión de jugadores."""
     gestor = GestorJugadores()
     gestor.menu_gestion_jugadores()
+    gestor.menu_gestion_partidas()
 
 
 

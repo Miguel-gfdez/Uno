@@ -69,6 +69,7 @@ class Main:
             """, unsafe_allow_html=True)
 
     def inicio(self):
+        query_params = st.query_params
         # Estilización adicional para mejorar la apariencia de los botones
         st.markdown("""
             <style>
@@ -95,11 +96,12 @@ class Main:
             if os.path.exists("jugadores.json"):
                 os.remove("jugadores.json")
                 
-            st.experimental_set_query_params(page="main")
+            st.query_params(page="main")
             st.rerun()
 
 
     def control_jugadores(self, juego):
+        query_params = st.query_params
         # Verificar si el archivo JSON ya existe
         if not os.path.exists(gestor_jugadores.archivo_json):
             # Si no existe, pedir al usuario el número de jugadores y sus nombres
@@ -151,7 +153,7 @@ class Main:
                             
                         else:
                             st.warning(f"{nombre} ya está en el juego y no se ha agregado nuevamente.")
-                    st.experimental_set_query_params(page="menu uno", juego=juego)
+                    st.query_params(page="menu uno", juego=juego)
                     st.rerun()
         else:
             # Si ya existe el archivo JSON, se omite la entrada de jugadores y se muestra el menú principal

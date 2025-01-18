@@ -19,6 +19,14 @@ class Main:
         if st.button("UNO"):
             st.experimental_set_query_params(page="uno")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
+        
+        if st.button("UNO FLIP"):
+            st.experimental_set_query_params(page="uno flip")
+            st.rerun()  # Forzar recarga de la página con los nuevos parámetros
+        
+        if st.button("DOS"):
+            st.experimental_set_query_params(page="dos")
+            st.rerun()  # Forzar recarga de la página con los nuevos parámetros
 
         if st.button("Gestionar jugadores"):
             st.experimental_set_query_params(page="gestionar_jugadores")
@@ -51,28 +59,7 @@ class Main:
             </style>
             """, unsafe_allow_html=True)
 
-
-# Punto de entrada principal
-if __name__ == "__main__":
-    # Crear instancias de las clases necesarias
-    gestor_jugadores = GestorJugadores()
-    gestor_UNO = UNO(gestor_jugadores)
-    gestor_UNO_FLIP = UNO(gestor_jugadores)  # Ajusta si `UNO_FLIP` tiene lógica diferente.
-    gestor_DOS = UNO(gestor_jugadores)  # Ajusta si `DOS` tiene lógica diferente.
-
-    # Obtener parámetros de la URL
-    query_params = st.experimental_get_query_params()
-    page = query_params.get("page", ["main"])[0]
-
-    # Redirigir según el parámetro `page`
-    if page == "main":
-        main_app = Main(gestor_jugadores, gestor_UNO, gestor_UNO_FLIP, gestor_DOS)
-        main_app.menu_principal()
-    elif page == "gestionar_jugadores":
-        gestor_jugadores.menu_gestion_jugadores()
-    elif page == "uno":
-        st.title("Bienvenidos al UNO")
-
+    def control_jugadores(self, page):
         # Verificar si el archivo JSON ya existe
         if not os.path.exists(gestor_jugadores.archivo_json):
             # Si no existe, pedir al usuario el número de jugadores y sus nombres
@@ -139,8 +126,45 @@ if __name__ == "__main__":
 
         # Si ya existe el archivo JSON, se omite la entrada de jugadores y se muestra el menú principal
         if os.path.exists(gestor_jugadores.archivo_json) or len(gestor_jugadores.jugadores) > 0:
-            gestor_UNO.menu_principal()
+            if page=="uno":
+                gestor_UNO.menu_Uno()
+            elif page=="uno flip":
+                pass
+            elif page=="dos":
+                pass
 
+# Punto de entrada principal
+if __name__ == "__main__":
+    # Crear instancias de las clases necesarias
+    gestor_jugadores = GestorJugadores()
+    gestor_UNO = UNO(gestor_jugadores)
+    gestor_UNO_FLIP = UNO(gestor_jugadores)  # Ajusta si `UNO_FLIP` tiene lógica diferente.
+    gestor_DOS = UNO(gestor_jugadores)  # Ajusta si `DOS` tiene lógica diferente.
+
+    # Obtener parámetros de la URL
+    query_params = st.experimental_get_query_params()
+    page = query_params.get("page", ["main"])[0]
+
+    # Redirigir según el parámetro `page`
+    main_app = Main(gestor_jugadores, gestor_UNO, gestor_UNO_FLIP, gestor_DOS)
+    if page == "main":
+        main_app.menu_principal()
+    elif page == "gestionar_jugadores":
+        gestor_jugadores.menu_gestion_jugadores()
+    elif page == "uno":
+        st.title("Bienvenidos al UNO")
+        main_app.control_jugadores(page)
+    elif page == "uno flip":
+        st.title("Bienvenidos al UNO FLIP")
+    elif page == "dos":
+        st.title("Bienvenidos al DOS")
+    elif page == "jugar rondas":
+        st.title("Jugando Rondas...")
+        gestor_UNO.jugar_rondas()
+        
+        
+
+        
 
 
 

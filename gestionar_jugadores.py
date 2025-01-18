@@ -122,8 +122,6 @@ class GestorJugadores:
         return 0
 
 
-
-
     def menu_gestion_jugadores(self):
         """Menú para gestionar jugadores."""
         st.title("Gestión de Jugadores")

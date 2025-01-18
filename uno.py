@@ -2,8 +2,6 @@ import streamlit as st
 import os
 from gestionar_jugadores import GestorJugadores
 import pandas as pd
-import random
-#from parameto import Parametos
 import sys
 
 
@@ -20,84 +18,9 @@ class UNO:
         self.n_personas = 2
         self.juego_iniciado = False
         self.modalidad = None  # Para almacenar la modalidad seleccionada
+        self.puntos = None
+        self.partidas = None
 
-    def menu_principal(self):
-        """Menú principal del programa adaptado a Streamlit con botones estilizados."""
-        st.markdown("""
-            <style>
-                .css-1emrehy.edgvbvh3 { 
-                    font-size: 50px; 
-                    height: 60px; 
-                    width: 100%;
-                    border-radius: 10px;
-                }
-                .stButton > button {
-                    width: 100%;
-                    height: 60px;
-                    border-radius: 10px;
-                    font-size: 18px;
-                    background-color: #4CAF50;
-                    color: white;
-                }
-                .stButton > button:hover {
-                    background-color: #45a049;
-                }
-            </style>
-            """, unsafe_allow_html=True)
-
-        # Selección de modalidad
-        modalidad = st.selectbox(
-            "Estilos de Juego:",
-            ("Selecciona una modalidad", "Incremento", "Partidas", "Libre")
-        )
-
-        # Dependiendo de la modalidad seleccionada, mostramos los parámetros específicos
-        puntos = None
-        partidas = None
-        flag = False
-        if modalidad == "Incremento":
-            puntos = self.incremento_parametros()
-
-            # Crear un DataFrame con una sola fila de 0s para los jugadores
-            df_incremento = pd.DataFrame([[0] * len(self.gestor_jugadores.jugadores)], columns=self.gestor_jugadores.jugadores.keys())
-            # Mostrar la tabla de incremento
-            st.subheader("Tabla de Puntuación")
-            st.dataframe(df_incremento)
-
-        elif modalidad == "Partidas":
-            partidas = self.partidas_parametros()
-            # Crear un DataFrame con "-" en lugar de ceros
-            df_partidas = pd.DataFrame([[0] * len(self.gestor_jugadores.jugadores)] * partidas, columns=self.gestor_jugadores.jugadores.keys())
-            # Mostrar la tabla de partidas
-            st.subheader("Tabla de Puntuación")
-            st.dataframe(df_partidas)
-
-        elif modalidad == "Libre":
-            df_libre = pd.DataFrame([[0] * len(self.gestor_jugadores.jugadores)], columns=self.gestor_jugadores.jugadores.keys())
-            st.subheader("Tabla de Puntuación")
-            st.dataframe(df_libre)
-
-        # Mostrar el botón de "Confirmar" solo si se seleccionó una modalidad
-        if modalidad != "Selecciona una modalidad" and modalidad is not None:
-            if st.button("Confirmar"):
-                flag = True
-                self.modalidad = modalidad  # Guardamos la modalidad seleccionada
-                parametros_str = ",".join(map(str, [puntos, partidas]))
-                # Establece los parámetros en la URL
-                st.experimental_set_query_params(page="jugar_rondas", modalidad=self.modalidad, parametros=parametros_str)
-                
-                # Forzar recarga de la página
-                st.rerun()  # Este método recargará la página y navegará a "jugar_rondas"
-
-        if flag:
-            # Esta parte puede no ser necesaria si usas `st.experimental_rerun()` como ya lo has hecho
-            if st.button("Jugar rondas"):
-                st.experimental_set_query_params(page="jugar_rondas")
-
-        if st.button("Menú Principal"):
-            st.write("\n¡Gracias por jugar! Hasta luego.")
-            sys.exit()
-        
 
     def incremento_parametros(self):
         """Estilo de juego: incremento."""
@@ -115,7 +38,6 @@ class UNO:
         self.n_partidas = n_partidas
         return self.n_partidas
         #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
-
 
 
     def jugar_rondas(self, modalidad, puntos, partidas):
@@ -150,8 +72,6 @@ class UNO:
 
         #     # Llamar a otra función con la lógica de la ronda
         #     self.procesar_ronda(modalidad, tabla_partidas, tabla_libre, tabla_incremento)
-
-
 
 
     def procesar_ronda(self, modalidad, tabla_partidas, tabla_libre, tabla_incremento):
@@ -238,35 +158,67 @@ class UNO:
         self.gestor_jugadores.guardar_jugadores()
 
 
+    def menu_Uno(self):
+        parametros = []
+        st.markdown("""
+            <style>
+                .css-1emrehy.edgvbvh3 { 
+                    font-size: 50px; 
+                    height: 60px; 
+                    width: 100%;
+                    border-radius: 10px;
+                }
+                .stButton > button {
+                    width: 100%;
+                    height: 60px;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                .stButton > button:hover {
+                    background-color: #45a049;
+                }
+            </style>
+            """, unsafe_allow_html=True)
+
+        # Selección de modalidad
+        modalidad = st.selectbox(
+            "Estilos de Juego:",
+            ("Selecciona una modalidad", "Incremento", "Partidas", "Libre")
+        )
+        # Dependiendo de la modalidad seleccionada, mostramos los parámetros específicos
+        
+        if modalidad == "Incremento":
+            puntos = self.incremento_parametros()
+
+        elif modalidad == "Partidas":
+            partidas = self.partidas_parametros()
+
+        # elif modalidad == "Libre":
+        #     pass
+        parametros.append(puntos)
+        parametros.append(partidas)
+
+        # Mostrar el botón de "Confirmar" solo si se seleccionó una modalidad
+        if modalidad != "Selecciona una modalidad" and modalidad is not None:
+            if st.button("Confirmar"):
+                self.modalidad = modalidad  # Guardamos la modalidad seleccionada
+                # Establece los parámetros en la URL
+                st.experimental_set_query_params(page="jugar rondas")
+                st.rerun()
+
+        if st.button("Volver al Menú Principal"):
+            st.experimental_set_query_params(page="main")
+            st.rerun()
 
 
 
-# Punto de entrada principal
-if __name__ == "__main__":
-    # Crear instancias de las clases necesarias
-    gestor_jugadores = {}  # Deberías agregar la lógica para gestionar los jugadores
-    gestor_UNO = UNO(gestor_jugadores)
 
-    # Obtener parámetros de la URL
-    query_params = st.experimental_get_query_params()
-    page = query_params.get("page", ["main"])[0]
-
-    # Redirigir según el parámetro `page`
-    if page == "main":
-        gestor_UNO.menu_principal()
-    elif page == "jugar_rondas":
-        st.write("Jugando rondas...")
-        modalidad = query_params.get("modalidad", [""])[0]
-        # Recupera el parámetro 'parametros' como una cadena
-        parametros_str = query_params.get("parametros", [""])[0]
-        # Convierte la cadena a lista
-        parametros = list(map(int, parametros_str.split(",")))
-        # Llama a la función de juego con los parámetros recuperados
-        #gestor_UNO.jugar_rondas(modalidad, parametros[0], parametros[1])
-
-
-
-
+def run():
+    """Ejecuta la gestión de jugadores."""
+    uno = UNO()
+    uno.menu_Uno()
 
 
 

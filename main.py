@@ -174,7 +174,7 @@ if __name__ == "__main__":
     gestor_DOS = UNO(gestor_jugadores)
 
     # Obtener parámetros de la URL
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params()
     page = query_params.get("page", ["inicio"])[0]
 
     # Redirigir según el parámetro `page`

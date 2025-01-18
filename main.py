@@ -2,10 +2,6 @@ import streamlit as st
 from uno import UNO
 from gestionar_jugadores import GestorJugadores
 import os
-import warnings
-
-# Desactivar los warnings de Streamlit
-st.set_option('client.showWarningOnDepricatedApi', False)
 
 class Main:
     def __init__(self, gestor_jugadores, gestor_UNO, gestor_UNO_FLIP, gestor_DOS):

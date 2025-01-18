@@ -93,8 +93,11 @@ class UNO:
         modalidad = st.session_state.modalidad
 
         if modalidad == "Incremento":
-            # Nombres de los botones
             nombres_botones = list(self.valores.keys())
+    
+            # Inicializar historial si no existe
+            if 'historial' not in st.session_state:
+                st.session_state.historial = []
 
             # Contenedor para la primera fila de botones
             fila1 = st.columns(7)
@@ -102,6 +105,8 @@ class UNO:
                 with col:
                     if st.button(nombres_botones[i]):
                         st.session_state.cartas_seleccionadas[nombres_botones[i]] += 1  # Incrementa el valor
+                        # Guardar la acción en el historial
+                        st.session_state.historial.append(('incremento', nombres_botones[i]))
 
             # Contenedor para la segunda fila de botones
             fila2 = st.columns(7)
@@ -109,6 +114,8 @@ class UNO:
                 with col:
                     if st.button(nombres_botones[i + 7]):
                         st.session_state.cartas_seleccionadas[nombres_botones[i + 7]] += 1  # Incrementa el valor
+                        # Guardar la acción en el historial
+                        st.session_state.historial.append(('incremento', nombres_botones[i + 7]))
 
             # Convertir los valores cartas_seleccionadas a un formato adecuado para mostrar en tabla
             selected_values = list(st.session_state.cartas_seleccionadas.items())  # Convertir a lista de tuplas
@@ -133,63 +140,51 @@ class UNO:
 
             # Mostrar los puntos totales
             st.write(f"Puntos Totales: {puntos_ronda}")
+            # Botón de deshacer acción
+            if st.button("Deshacer"):
+                if st.session_state.historial:
+                    # Recuperar la última acción
+                    last_action = st.session_state.historial.pop()
+                    if last_action[0] == 'incremento':
+                        boton_presionado = last_action[1]
+                        st.session_state.cartas_seleccionadas[boton_presionado] -= 1  # Restar el valor
+                    # Actualizar la tabla y puntos después de deshacer
+                    st.write(f"Acción deshecha: {boton_presionado}")
+                    st.write(f"Puntos Totales: {sum(self.valores[key] * value for key, value in st.session_state.cartas_seleccionadas.items())}")
 
-        # Mostrar dos botones seguidos
         col1, col2 = st.columns(2)  # Crear dos columnas para los botones
 
-        # Primer botón
-        with col1:
-            if st.button("Confirmar Datos"):
-                st.session_state.ganadores_lista.append(ganador)
-                if modalidad == "Partidas":
-                    st.session_state.jugadores[ganador] += 1
-                    self.gestor_jugadores.jugadores = st.session_state.jugadores
-                    self.gestor_jugadores.guardar_jugadores()
-                    st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
-                    st.rerun()
-                elif modalidad == "Incremento":
-                    st.session_state.jugadores[ganador] += puntos_ronda
-                    self.gestor_jugadores.jugadores = st.session_state.jugadores
-                    self.gestor_jugadores.guardar_jugadores()
-                    st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
-                    st.rerun()
-                elif modalidad == "Libre":
-                    pass
-
-        # Segundo botón
+        # Botón "Cancelar" (siempre visible)
         with col2:
             if st.button("Cancelar"):
                 st.experimental_set_query_params(page="main")
                 st.rerun()
+
+        # Botón "Confirmar Datos"
+        try:
+            with col1:
+                if st.button("Confirmar Datos"):
+                    if ganador not in st.session_state.jugadores:
+                        raise ValueError("¡Seleccione un jugador válido!")
+                    
+                    st.session_state.ganadores_lista.append(ganador)
+                    if modalidad == "Partidas":
+                        st.session_state.jugadores[ganador] += 1
+                        self.gestor_jugadores.jugadores = st.session_state.jugadores
+                        self.gestor_jugadores.guardar_jugadores()
+                        st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
+                        st.rerun()
+                    elif modalidad == "Incremento":
+                        st.session_state.jugadores[ganador] += puntos_ronda
+                        self.gestor_jugadores.jugadores = st.session_state.jugadores
+                        self.gestor_jugadores.guardar_jugadores()
+                        st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
+                        st.rerun()
+                    elif modalidad == "Libre":
+                        pass
+        except Exception as e:
+            st.warning("Por favor, seleccione un jugador válido para continuar.")
                 
-
-
-        # c_partidas = 0
-        # tabla_libre = pd.DataFrame(columns=self.gestor_jugadores.jugadores.keys())
-        # tabla_incremento = pd.DataFrame(columns=self.gestor_jugadores.jugadores.keys())
-        # tabla_partidas = pd.DataFrame('', index=range(self.n_partidas), columns=self.gestor_jugadores.jugadores.keys())
-
-        # # Inicializar la clave de estado de sesión para el ganador si no está definida
-        # if 'ganador' not in st.session_state:
-        #     st.session_state.ganador = None
-
-        # if 'c_partidas' not in st.session_state:
-        #     st.session_state.c_partidas = 0
-
-        # # Mostrar el selectbox fuera del bucle, para seleccionar al ganador de la ronda
-        # ganador = st.selectbox(
-        #     "Selecciona el ganador de la ronda:",
-        #     list(self.gestor_jugadores.jugadores.keys()),
-        #     key="ganador_selectbox"
-        # )
-
-        # # Botón para enviar la selección y avanzar al siguiente paso
-        # if st.button("Enviar selección"):
-        #     # Guardamos el ganador en session_state
-        #     st.session_state.ganador = ganador
-
-        #     # Llamar a otra función con la lógica de la ronda
-        #     self.procesar_ronda(modalidad, tabla_partidas, tabla_libre, tabla_incremento)
 
 
     def procesar_ronda(self, ganador, puntos_ronda):
@@ -208,7 +203,7 @@ class UNO:
 
 
         if modalidad == "Partidas":
-            if st.session_state.contador_partidas >= n_partidas or st.session_state.jugadores[ganador] > n_partidas // 2: # Controlar el fin de la partida
+            if st.session_state.contador_partidas >= n_partidas or st.session_state.jugadores[ganador] > n_partidas // 2:  # Controlar el fin de la partida
                 max_partidas = max(st.session_state.jugadores, key=st.session_state.jugadores.get)
                 st.success(f"El ganador es {max_partidas} con {st.session_state.jugadores[max_partidas]}/{n_partidas} partidas ganadas.")
                 st.subheader("Resultados Finales")
@@ -235,15 +230,61 @@ class UNO:
                 else:
                     return
             else:
-                
                 # Usar la lista de ganadores para colocar las "X" en las filas correspondientes
                 for i, ganador in enumerate(st.session_state.ganadores_lista):
                     tabla_partidas.loc[i, ganador] = 'X'
 
                 # Mostrar la tabla actualizada
                 st.dataframe(tabla_partidas)
-                
-                
+
+        elif modalidad == "Incremento":
+            # Verificar si el jugador ha alcanzado los puntos máximos
+            if st.session_state.jugadores[ganador] >= puntos_maximos:
+                max_jugador = max(st.session_state.jugadores, key=st.session_state.jugadores.get)
+                st.success(f"El ganador es {max_jugador} con {st.session_state.jugadores[max_jugador]} puntos.")
+                st.subheader("Resultados Finales")
+
+                # Crear la tabla de resultados con los puntos
+                tabla_partidas = pd.DataFrame(index=jugadores, columns=["Puntos"])
+
+                # Rellenar la tabla con los puntos de cada jugador
+                for jugador in jugadores:
+                    tabla_partidas.loc[jugador, "Puntos"] = st.session_state.jugadores[jugador]
+
+                # Mostrar la tabla con los puntos
+                st.dataframe(tabla_partidas)
+
+                # Botón para finalizar el juego
+                if st.button("Finalizar"):
+                    # Resetear los puntajes de los jugadores
+                    for jugador in st.session_state.jugadores:
+                        st.session_state.jugadores[jugador] = 0
+                    self.gestor_jugadores.jugadores = st.session_state.jugadores
+                    self.gestor_jugadores.guardar_jugadores()
+                    self.gestor_jugadores.guardar_historial(st.session_state.juego, modalidad, max_jugador)
+                    # Limpiar el estado de sesión
+                    del st.session_state["jugadores"]
+                    del st.session_state["modalidad"]
+                    del st.session_state["parametros"]
+                    del st.session_state["contador_partidas"]
+                    del st.session_state["ganadores_lista"]
+                    del st.session_state["juego"]
+                    st.experimental_set_query_params(page="main")
+                    st.rerun()
+                else:
+                    return
+            else:
+                # Mostrar la tabla actualizada con los puntos acumulados
+                st.subheader("Puntos Acumulados")
+                tabla_partidas = pd.DataFrame(index=jugadores, columns=["Puntos"])
+
+                # Rellenar la tabla con los puntos de cada jugador
+                for jugador in jugadores:
+                    tabla_partidas.loc[jugador, "Puntos"] = st.session_state.jugadores[jugador]
+
+                # Mostrar la tabla con los puntos
+                st.dataframe(tabla_partidas)
+
         if st.button("Continuar"):
             st.session_state.contador_partidas += 1
             st.experimental_set_query_params(page="seleccionar ganador")
@@ -251,64 +292,7 @@ class UNO:
         else:
             return
 
-
-            # Si se alcanzan las partidas máximas o un jugador gana más de la mitad de las rondas, finalizar
-            # if c_partidas == n_partidas or self.gestor_jugadores.jugadores[ganador] > n_partidas // 2:
-            #     max_partidas = max(self.gestor_jugadores.jugadores, key=self.gestor_jugadores.jugadores.get)
-            #     st.success(f"El ganador es {max_partidas} con {self.gestor_jugadores.jugadores[max_partidas]} partidas ganadas.")
-                
-            #     # Restablecer los valores de todos los jugadores a 0
-            #     for jugador in self.gestor_jugadores.jugadores:
-            #         self.gestor_jugadores.jugadores[jugador] = 0
-                
-            #     # Mostrar la tabla de "partidas" final
-            #     st.subheader("Modalidad Partidas (Final)")
-            #     st.dataframe(tabla_partidas)
-            #     return
-            
-
-
-
-
-
-            
-
-        # Lógica del modo de juego "incremento"
-        # elif modalidad == "incremento":
-        #     carta = st.selectbox(f"Selecciona la carta jugada (o 'Done' para terminar):", list(self.valores.keys()), key=f"carta_ronda_{c_partidas}_{modalidad}")
-        #     if carta == "Done":
-        #         return
-
-        #     # Incrementar puntos en "incremento"
-        #     self.gestor_jugadores.jugadores[ganador] += self.valores[carta]
-        #     if self.gestor_jugadores.jugadores[ganador] >= self.puntos_maximos:
-        #         st.success(f"El ganador del juego es {ganador}. ¡Enhorabuena!")
-                
-        #         # Restablecer los valores de todos los jugadores a 0
-        #         for jugador in self.gestor_jugadores.jugadores:
-        #             self.gestor_jugadores.jugadores[jugador] = 0
-                
-        #         # Añadir la fila correspondiente en la tabla de incremento
-        #         tabla_incremento = tabla_incremento.append(self.gestor_jugadores.jugadores, ignore_index=True)
-        #         st.subheader("Modalidad Incremento")
-        #         st.dataframe(tabla_incremento)
-        #         return
-
-        # # Lógica del modo de juego "libre"
-        # elif modalidad == "libre":
-        #     carta = st.selectbox(f"Selecciona la carta jugada (o 'Done' para terminar):", list(self.valores.keys()), key=f"carta_ronda_{c_partidas}_{modalidad}")
-        #     if carta == "Done":
-        #         return
-            
-        #     self.gestor_jugadores.jugadores[ganador] += self.valores[carta]
-
-        #     # Añadir la fila correspondiente en la tabla de libre
-        #     tabla_libre = tabla_libre.append(self.gestor_jugadores.jugadores, ignore_index=True)
-        #     st.subheader("Modalidad Libre")
-        #     st.dataframe(tabla_libre)
-
-        # # Guardar los cambios después de cada ronda
-        # self.gestor_jugadores.guardar_jugadores()
+ 
 
 
     def menu_Uno(self, juego):

@@ -46,6 +46,8 @@ class UNO:
         st.write(f"Puntos máximos: {puntos}")
         st.write(f"Número de partidas: {partidas}")
 
+
+
         # c_partidas = 0
         # tabla_libre = pd.DataFrame(columns=self.gestor_jugadores.jugadores.keys())
         # tabla_incremento = pd.DataFrame(columns=self.gestor_jugadores.jugadores.keys())
@@ -159,7 +161,8 @@ class UNO:
 
 
     def menu_Uno(self):
-        parametros = []
+        puntos = 0
+        partidas = 0
         st.markdown("""
             <style>
                 .css-1emrehy.edgvbvh3 { 
@@ -195,17 +198,13 @@ class UNO:
         elif modalidad == "Partidas":
             partidas = self.partidas_parametros()
 
-        # elif modalidad == "Libre":
-        #     pass
-        parametros.append(puntos)
-        parametros.append(partidas)
-
         # Mostrar el botón de "Confirmar" solo si se seleccionó una modalidad
         if modalidad != "Selecciona una modalidad" and modalidad is not None:
             if st.button("Confirmar"):
                 self.modalidad = modalidad  # Guardamos la modalidad seleccionada
+                parametros_str = ",".join(map(str, [puntos, partidas]))
                 # Establece los parámetros en la URL
-                st.experimental_set_query_params(page="jugar rondas")
+                st.experimental_set_query_params(page="jugar rondas", modalidad=self.modalidad, parametros=parametros_str)
                 st.rerun()
 
         if st.button("Volver al Menú Principal"):

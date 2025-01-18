@@ -160,7 +160,15 @@ if __name__ == "__main__":
         st.title("Bienvenidos al DOS")
     elif page == "jugar rondas":
         st.title("Jugando Rondas...")
-        gestor_UNO.jugar_rondas()
+        modalidad = query_params.get("modalidad", [""])[0]
+        parametros_str = query_params.get("parametros", [""])[0]
+        parametros = list(map(str, parametros_str.split(",")))
+
+        if len(parametros) < 2:
+            st.error("Faltan parámetros necesarios para jugar rondas.")
+            st.warning(parametros_str)
+        else:
+            gestor_UNO.jugar_rondas(modalidad, parametros[0], parametros[1])
         
         
 

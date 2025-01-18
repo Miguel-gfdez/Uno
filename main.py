@@ -10,6 +10,7 @@ class Main:
         self.gestor_UNO = gestor_UNO
         self.gestor_UNO_FLIP = gestor_UNO_FLIP
         self.gestor_DOS = gestor_DOS
+        self.juego = ""
 
     def menu_principal(self):
         """Menú principal del programa adaptado a Streamlit con botones apilados y estilizados."""
@@ -59,7 +60,7 @@ class Main:
             </style>
             """, unsafe_allow_html=True)
 
-    def control_jugadores(self, page):
+    def control_jugadores(self, juego):
         # Verificar si el archivo JSON ya existe
         if not os.path.exists(gestor_jugadores.archivo_json):
             # Si no existe, pedir al usuario el número de jugadores y sus nombres
@@ -127,7 +128,7 @@ class Main:
         # Si ya existe el archivo JSON, se omite la entrada de jugadores y se muestra el menú principal
         if os.path.exists(gestor_jugadores.archivo_json) or len(gestor_jugadores.jugadores) > 0:
             if page=="uno":
-                gestor_UNO.menu_Uno()
+                gestor_UNO.menu_Uno(juego)
             elif page=="uno flip":
                 pass
             elif page=="dos":
@@ -152,24 +153,24 @@ if __name__ == "__main__":
     elif page == "gestionar_jugadores":
         gestor_jugadores.menu_gestion_jugadores()
     elif page == "uno":
+        juego = page.upper()
         st.title("Bienvenidos al UNO")
-        main_app.control_jugadores(page)
+        main_app.control_jugadores(juego)
     elif page == "uno flip":
         st.title("Bienvenidos al UNO FLIP")
     elif page == "dos":
         st.title("Bienvenidos al DOS")
-    elif page == "jugar rondas":
-        st.title("Jugando Rondas...")
-        modalidad = query_params.get("modalidad", [""])[0]
-        parametros_str = query_params.get("parametros", [""])[0]
-        parametros = list(map(str, parametros_str.split(",")))
+    elif page == "seleccionar ganador":
+        gestor_UNO.seleccionar_ganador()
+    elif page == "procesar rondas":
+        st.title("Resultados")
+        ganador = query_params.get("ganador", [""])[0]
+        puntos_ronda = query_params.get("puntos_ronda", [""])[0]
+        gestor_UNO.procesar_ronda(ganador,puntos_ronda)
 
-        if len(parametros) < 2:
-            st.error("Faltan parámetros necesarios para jugar rondas.")
-            st.warning(parametros_str)
-        else:
-            gestor_UNO.jugar_rondas(modalidad, parametros[0], parametros[1])
-        
+
+
+
         
 
         

@@ -10,6 +10,7 @@ class GestorJugadores:
         self.archivo_historial = archivo_historial
         self.jugadores = {}
         self.cargar_jugadores()
+        
 
     def agregar_jugador(self, nombre):
         """Agrega un jugador al diccionario de jugadores."""

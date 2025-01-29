@@ -17,12 +17,14 @@ class GestorJugadores:
         if nombre in self.jugadores:
             st.warning(f"{nombre} ya existe.")
         else:
-            self.jugadores[nombre] = 0
+            st.session_state.jugadores[nombre] = 0
+            self.jugadores = st.session_state.jugadores
             self.guardar_jugadores()
             st.success(f"{nombre} agregado.")
 
     def guardar_jugadores(self):
         """Guarda los jugadores en el archivo JSON."""
+        self.jugadores = st.session_state.jugadores
         with open(self.archivo_json, "w") as archivo:
             json.dump(self.jugadores, archivo, indent=4)
 
@@ -44,7 +46,8 @@ class GestorJugadores:
                 st.write(self.jugadores)
                 return
             # Eliminar jugador del diccionario de jugadores
-            del self.jugadores[nombre_jugador]
+            del st.session_state.jugadores[nombre_jugador]
+            self.jugadores = st.session_state.jugadores
             
             # Guardar los cambios en el archivo JSON
             self.guardar_jugadores()
@@ -72,7 +75,8 @@ class GestorJugadores:
             st.warning(f"Ya existe un jugador con el nombre {nuevo_nombre}.")
             return
 
-        self.jugadores[nuevo_nombre] = self.jugadores.pop(nombre_actual)
+        st.session_state.jugadores[nuevo_nombre] = st.session_state.jugadores.pop(nombre_actual)
+        self.jugadores = st.session_state.jugadores
         st.success(f"{nombre_actual} ha sido modificado a {nuevo_nombre}.")        
         self.guardar_jugadores()
 

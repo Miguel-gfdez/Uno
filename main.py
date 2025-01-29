@@ -44,6 +44,7 @@ class Main:
             del st.session_state["jugadores"]
             del st.session_state["modalidad"]
             del st.session_state["parametros"]
+            del st.session_state["cartas_seleccionadas"]
             del st.session_state["contador_partidas"]
             del st.session_state["ganadores_lista"]
             del st.session_state["juego"] 

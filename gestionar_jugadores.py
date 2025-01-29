@@ -17,7 +17,7 @@ class GestorJugadores:
         if nombre in self.jugadores:
             st.warning(f"{nombre} ya existe.")
         else:
-            st.session_state.jugadores[nombre] = 0
+            st.session_state.jugadores[nombre.capitalize()] = 0
             self.jugadores = st.session_state.jugadores
             self.guardar_jugadores()
             st.success(f"{nombre} agregado.")

@@ -44,6 +44,7 @@ class UNO:
         return self.puntos_maximos
         #st.write(f"Modo Incremento activado. Puntos máximos establecidos en: {self.puntos_maximos}")
 
+ 
     def partidas_parametros(self):
         """Estilo de juego: Partidas."""
         n_partidas = st.number_input("Introduce el número de partidas:", min_value=1, step=2)
@@ -53,6 +54,7 @@ class UNO:
         self.n_partidas = n_partidas
         return self.n_partidas
         #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
+
 
     def seleccionar_ganador(self):
         modalidad = st.session_state.modalidad
@@ -208,7 +210,7 @@ class UNO:
             with col1:
                 if st.button("Confirmar Datos"):
                     if ganador not in st.session_state.jugadores:
-                        raise ValueError("¡Seleccione un jugador válido!")
+                        st.warning("Por favor, seleccione un jugador válido para continuar.")
                     
                     st.session_state.ganadores_lista.append(ganador)
                     if modalidad == "Partidas":
@@ -227,8 +229,10 @@ class UNO:
                         pass
         
         except Exception as e:
-            st.warning("Por favor, seleccione un jugador válido para continuar.")
+            pass
+            #st.warning("Por favor, seleccione un jugador válido para continuar.")
                 
+
     def procesar_ronda(self, ganador, puntos_ronda):
         n_partidas = int(st.session_state.parametros[1]) if st.session_state.parametros[1] is not None else None
         puntos_maximos = int(st.session_state.parametros[0]) if st.session_state.parametros[0] is not None else None

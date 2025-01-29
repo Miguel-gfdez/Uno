@@ -132,7 +132,7 @@ class Main:
                     selectbox_values.append(nombre)  # Guardar la selección para evitar duplicados
 
                     if nombre == "Añadir nuevo jugador...":                                                                                                      
-                        nuevo_nombre = st.text_input(f"Introduce el nombre del jugador {i + 1}")
+                        nuevo_nombre = st.text_input(f"Introduce el nombre del jugador {i + 1}").capitalize()
                         if nuevo_nombre and nuevo_nombre.strip() != "" and nuevo_nombre not in jugadores_historial + nombres_jugadores:                                                                                    
                             nombres_jugadores.append(nuevo_nombre)  # Añadir el nombre tal como se introdujo
                             if "jugadores" not in st.session_state:

@@ -10,15 +10,9 @@ class UNO:
             "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
             "+2": 20, "BLOQUEO": 20, "DIRECCION": 20, "COLOR": 50, "+4": 50
         }
-        self.valores_UNO_FLIP = {
-            "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
-            "+1": 10, "+5": 20, "DIRECCION": 20, "BLOQUEO": 20, "FLIP": 20, "RETORNO": 30,
-            "COLOR": 40, "+2": 50, "ELEGIR": 60
-        }
-        self.valores_DOS = {
-            "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
-            "COMODIN": 20, "#": 40
-        }
+        self.valores_UNO_FLIP = {"1":1, "2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "+1":10, "+5":20, "DIRECCION":20, "BLOQUEO":20, "FLIP":20, "RETORNO":30, "COLOR":40, "+2":50, "ELEGIR":60}
+        self.valores_DOS = {"1":1, "2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "COMODIN":20, "#":40}
+        
 
         self.valores = {}
         self.puntos_maximos = 100
@@ -26,39 +20,42 @@ class UNO:
         self.n_personas = 2
         self.juego_iniciado = False
 
-        # Inicializar session_state si no está definido
         if "juego" not in st.session_state:
             st.session_state.juego = None
         if "modalidad" not in st.session_state:
             st.session_state.modalidad = None
         if "parametros" not in st.session_state:
             st.session_state.parametros = []
+        if "cartas_seleccionadas" not in st.session_state or not isinstance(st.session_state.cartas_seleccionadas, dict):
+            st.session_state.cartas_seleccionadas = {key: 0 for key in self.valores.keys()}
         if "contador_partidas" not in st.session_state:
             st.session_state.contador_partidas = 0
         if "jugadores" not in st.session_state:
             st.session_state.jugadores = self.gestor_jugadores.jugadores
         if "ganadores_lista" not in st.session_state:
             st.session_state.ganadores_lista = []
-    
-    
-    def incremento_parametros(self):
-        """Configura el modo de juego por puntos."""
-        self.puntos_maximos = st.number_input("Introduce la cantidad máxima de puntos:", min_value=100, step=50)
-        return self.puntos_maximos
 
-    
+    def incremento_parametros(self):
+        """Estilo de juego: incremento."""
+        puntos_maximos = st.number_input("Introduce la cantidad máxima de puntos:", min_value=100, step=50)
+        self.puntos_maximos = puntos_maximos
+        return self.puntos_maximos
+        #st.write(f"Modo Incremento activado. Puntos máximos establecidos en: {self.puntos_maximos}")
+
     def partidas_parametros(self):
-        """Configura el modo de juego por partidas."""
-        n_partidas = st.number_input("Introduce el número de partidas (debe ser impar):", min_value=1, step=2)
+        """Estilo de juego: Partidas."""
+        n_partidas = st.number_input("Introduce el número de partidas:", min_value=1, step=2)
+        while n_partidas % 2 == 0:
+            st.warning("El número de partidas debe ser impar. Ajustando a 1.")
+            n_partidas = 1
         self.n_partidas = n_partidas
         return self.n_partidas
-    
-    
+        #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
+
     def seleccionar_ganador(self):
         modalidad = st.session_state.modalidad
         if modalidad == "Libre":
             st.warning("Modalidad no disponible")
-
         """Juega rondas hasta que haya un ganador."""
         if st.session_state.juego == "UNO":
             self.valores = self.valores_UNO
@@ -67,7 +64,7 @@ class UNO:
         elif st.session_state.juego == "DOS":
             self.valores = self.valores_DOS
 
-        # Actualizar cartas_seleccionadas con los nuevos valores
+        # Actualizar `cartas_seleccionadas` con los nuevos valores
         if (
             "cartas_seleccionadas" not in st.session_state
             or not isinstance(st.session_state.cartas_seleccionadas, dict)
@@ -108,14 +105,14 @@ class UNO:
         # Verifica si hay jugadores cargados, si no hay, muestra un mensaje de advertencia
         if not jugadores:
             st.warning("No hay jugadores cargados. Por favor, añada jugadores antes de continuar.")
-            return  # Salir de la función si no hay jugadores disponibles
-
+            return  # Salir de la función si no hay jugadores disponibles     
         ganador = st.selectbox(
-            "Selecciona el ganador de la ronda:",
-            ["Selecciona un Jugador..."] + list(jugadores.keys()),  # El primer elemento es una cadena vacía
-            key="ganador_selectbox"
-        )
+                "Selecciona el ganador de la ronda:",
+                ["Selecciona un Jugador..."] + list(jugadores.keys()),  # El primer elemento es una cadena vacía
+                key="ganador_selectbox"
+            )
         
+        modalidad = st.session_state.modalidad
         st.session_state.jugadores = jugadores
 
         if modalidad == "Incremento":
@@ -200,7 +197,7 @@ class UNO:
                 del st.session_state["parametros"]
                 del st.session_state["contador_partidas"]
                 del st.session_state["ganadores_lista"]
-                del st.session_state["juego"]
+                del st.session_state["juego"]               
                 st.experimental_set_query_params(page="main")
                 st.rerun()
         try:
@@ -226,9 +223,7 @@ class UNO:
                         pass
         except Exception as e:
             st.warning("Por favor, seleccione un jugador válido para continuar.")
-            st.warning(e)
                 
-    
     def procesar_ronda(self, ganador, puntos_ronda):
         n_partidas = int(st.session_state.parametros[1]) if st.session_state.parametros[1] is not None else None
         puntos_maximos = int(st.session_state.parametros[0]) if st.session_state.parametros[0] is not None else None
@@ -337,14 +332,17 @@ class UNO:
 
     def menu_Uno(self, juego):
         st.session_state.juego = juego
-        self.valores = (
-            self.valores_UNO if juego == "UNO" else
-            self.valores_UNO_FLIP if juego == "UNO FLIP" else
-            self.valores_DOS
-        )
-
+        self.valores = self.valores_UNO if juego=="UNO" else self.valores_UNO_FLIP if juego=="UNO FLIP" else self.valores_DOS
+        puntos = 0
+        partidas = 0
         st.markdown("""
             <style>
+                .css-1emrehy.edgvbvh3 { 
+                    font-size: 50px; 
+                    height: 60px; 
+                    width: 100%;
+                    border-radius: 10px;
+                }
                 .stButton > button {
                     width: 100%;
                     height: 60px;
@@ -362,29 +360,31 @@ class UNO:
         # Selección de modalidad
         modalidad = st.selectbox(
             "Estilos de Juego:",
-            ["Selecciona una modalidad..."] + ["Incremento", "Partidas"],
+            ["Selecciona una modalidad..."] + ["Incremento", "Partidas", "Libre"],  # Lista correcta de modalidades
             key="modalidad_selectbox"
         )
 
-        # Parámetros según la modalidad seleccionada
+        # Dependiendo de la modalidad seleccionada, mostramos los parámetros específicos
         if modalidad == "Incremento":
             puntos = self.incremento_parametros()
+
         elif modalidad == "Partidas":
             partidas = self.partidas_parametros()
-        else:
-            puntos, partidas = None, None
 
-        # Confirmar modalidad y avanzar al siguiente paso
+        # Mostrar el botón de "Confirmar" solo si se seleccionó una modalidad válida
         if modalidad != "Selecciona una modalidad..." and modalidad is not None:
-            if st.button("Confirmar"):
+            if st.button("Confirmar"):                
+                # Guardamos los valores en session_state
                 st.session_state.modalidad = modalidad
-                st.session_state.parametros = [puntos, partidas]
-                st.query_params = {"page": "seleccionar ganador"}
-                st.rerun()
+                if modalidad == "Libre":
+                    st.warning("Modalidad no disponible")
+                else:
+                    st.session_state.parametros = [puntos, partidas]
+                    st.experimental_set_query_params(page="seleccionar ganador")
+                    st.rerun()
 
-        # Volver al menú principal
         if st.button("Volver al Menú Principal"):
-            st.query_params = {"page": "main"}
+            st.experimental_set_query_params(page="main")
             st.rerun()
 
 

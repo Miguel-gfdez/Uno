@@ -3,7 +3,6 @@ from uno import UNO
 from gestionar_jugadores import GestorJugadores
 import os
 
-
 class Main:
     def __init__(self, gestor_jugadores, gestor_UNO, gestor_UNO_FLIP, gestor_DOS):
         self.gestor_jugadores = gestor_jugadores
@@ -11,28 +10,26 @@ class Main:
         self.gestor_UNO_FLIP = gestor_UNO_FLIP
         self.gestor_DOS = gestor_DOS
         self.juego = ""
-        
 
     def menu_principal(self):
-        query_params = st.query_params
         """Menú principal del programa adaptado a Streamlit con botones apilados y estilizados."""
         st.title("Menú Principal")
 
         # Botones estilizados y navegación
         if st.button("UNO"):
-            st.query_params(page="uno")
+            st.experimental_set_query_params(page="uno")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
         
         if st.button("UNO FLIP"):
-            st.query_params(page="uno flip")
+            st.experimental_set_query_params(page="uno flip")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
         
         if st.button("DOS"):
-            st.query_params(page="dos")
+            st.experimental_set_query_params(page="dos")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
 
         if st.button("Gestionar jugadores"):
-            st.query_params(page="gestionar_jugadores")
+            st.experimental_set_query_params(page="gestionar_jugadores")
             st.rerun()  # Forzar recarga de la página con los nuevos parámetros
         
         # if st.button("Gestionar partidas"):
@@ -42,7 +39,7 @@ class Main:
         if st.button("Salir"):
             if os.path.exists("jugadores.json"):
                 os.remove("jugadores.json")
-            st.query_params(page="inicio")
+            st.experimental_set_query_params(page="inicio")
             st.rerun()
             st.stop()
 
@@ -70,7 +67,6 @@ class Main:
             """, unsafe_allow_html=True)
 
     def inicio(self):
-        query_params = st.query_params
         # Estilización adicional para mejorar la apariencia de los botones
         st.markdown("""
             <style>
@@ -97,12 +93,11 @@ class Main:
             if os.path.exists("jugadores.json"):
                 os.remove("jugadores.json")
                 
-            st.query_params(page="main")
+            st.experimental_set_query_params(page="main")
             st.rerun()
 
 
     def control_jugadores(self, juego):
-        query_params = st.query_params
         # Verificar si el archivo JSON ya existe
         if not os.path.exists(gestor_jugadores.archivo_json):
             # Si no existe, pedir al usuario el número de jugadores y sus nombres
@@ -118,7 +113,7 @@ class Main:
             selectbox_values = []  # Para guardar los valores seleccionados de los selectbox
 
             if num_jugadores > 0:
-                for i in range(num_jugadores):
+                for i in range(num_jugadores):                                                   
                     nombre = st.selectbox(
                         f"Selecciona el jugador {i + 1}",
                         options=opciones_selectbox,  # Mostrar todas las opciones
@@ -127,13 +122,13 @@ class Main:
 
                     selectbox_values.append(nombre)  # Guardar la selección para evitar duplicados
 
-                    if nombre == "Añadir nuevo jugador...":
+                    if nombre == "Añadir nuevo jugador...":                                                                                                      
                         nuevo_nombre = st.text_input(f"Introduce el nombre del jugador {i + 1}")
-                        if nuevo_nombre and nuevo_nombre.strip() != "" and nuevo_nombre not in jugadores_historial + nombres_jugadores:
+                        if nuevo_nombre and nuevo_nombre.strip() != "" and nuevo_nombre not in jugadores_historial + nombres_jugadores:                                                                                    
                             nombres_jugadores.append(nuevo_nombre)  # Añadir el nombre tal como se introdujo
                             if "jugadores" not in st.session_state:
                                 st.session_state.jugadores = {}  # Inicializar la sesión de jugadores si no existe
-                            st.session_state.jugadores[nuevo_nombre] = 0  # Inicializar el puntaje del jugador
+                            st.session_state.jugadores[nuevo_nombre] = 0  # Inicializar el puntaje del jugador                                                                   
                     elif nombre != "Selecciona un jugador o añade uno nuevo" and nombre and nombre not in nombres_jugadores:
                         nombres_jugadores.append(nombre)  # Añadir el nombre tal como se seleccionó
                         if "jugadores" not in st.session_state:
@@ -154,8 +149,8 @@ class Main:
                             
                         else:
                             st.warning(f"{nombre} ya está en el juego y no se ha agregado nuevamente.")
-                    st.query_params(page="menu uno", juego=juego)
-                    st.rerun()
+                    st.experimental_set_query_params(page="menu uno", juego=juego)
+                    st.rerun()           
         else:
             # Si ya existe el archivo JSON, se omite la entrada de jugadores y se muestra el menú principal
             if os.path.exists(gestor_jugadores.archivo_json) or len(gestor_jugadores.jugadores) > 0:
@@ -167,9 +162,6 @@ class Main:
                     gestor_UNO.menu_Uno(juego)
 
 
-
-
-
 # Punto de entrada principal
 if __name__ == "__main__":
     # Crear instancias de las clases necesarias
@@ -179,10 +171,10 @@ if __name__ == "__main__":
     gestor_DOS = UNO(gestor_jugadores)
 
     # Obtener parámetros de la URL
-    query_params = st.query_params
+    query_params = st.experimental_get_query_params()
     page = query_params.get("page", ["inicio"])[0]
 
-    # Redirigir según el parámetro page
+    # Redirigir según el parámetro `page`
     main_app = Main(gestor_jugadores, gestor_UNO, gestor_UNO_FLIP, gestor_DOS)
     if page == "inicio":
         main_app.inicio()
@@ -194,7 +186,7 @@ if __name__ == "__main__":
     #     gestor_jugadores.menu_gestion_partidas()
     elif page == "menu uno":
         juego = query_params.get("juego", [""])[0]
-        gestor_UNO.menu_Uno(juego)
+        gestor_UNO.menu_Uno(juego)          
     elif page == "uno":
         juego = page.upper()
         st.title("Bienvenidos al UNO")
@@ -214,7 +206,6 @@ if __name__ == "__main__":
         ganador = query_params.get("ganador", [""])[0]
         puntos_ronda = query_params.get("puntos_ronda", [""])[0]
         gestor_UNO.procesar_ronda(ganador,puntos_ronda)
-
 
 
 

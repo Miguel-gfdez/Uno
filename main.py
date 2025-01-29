@@ -39,6 +39,14 @@ class Main:
         if st.button("Salir"):
             if os.path.exists("jugadores.json"):
                 os.remove("jugadores.json")
+            self.gestor_jugadores.jugadores = st.session_state.jugadores
+            self.gestor_jugadores.guardar_jugadores()
+            del st.session_state["jugadores"]
+            del st.session_state["modalidad"]
+            del st.session_state["parametros"]
+            del st.session_state["contador_partidas"]
+            del st.session_state["ganadores_lista"]
+            del st.session_state["juego"] 
             st.experimental_set_query_params(page="inicio")
             st.rerun()
             st.stop()

@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import os
+import time
 
 
 
@@ -189,17 +191,17 @@ class UNO:
 
         col1, col2 = st.columns(2)  # Crear dos columnas para los botones
         with col2:
-            if st.button("Cancelar"):
-                for jugador in st.session_state.jugadores:
-                    st.session_state.jugadores[jugador] = 0
-                self.gestor_jugadores.jugadores = st.session_state.jugadores
-                self.gestor_jugadores.guardar_jugadores()
-                del st.session_state["jugadores"]
-                del st.session_state["modalidad"]
-                del st.session_state["parametros"]
-                del st.session_state["contador_partidas"]
-                del st.session_state["ganadores_lista"]
-                del st.session_state["juego"]               
+            if st.button("Menú Principal"):
+                # for jugador in st.session_state.jugadores:
+                #     st.session_state.jugadores[jugador] = 0
+                # self.gestor_jugadores.jugadores = st.session_state.jugadores
+                # self.gestor_jugadores.guardar_jugadores()
+                # del st.session_state["jugadores"]
+                # del st.session_state["modalidad"]
+                # del st.session_state["parametros"]
+                # del st.session_state["contador_partidas"]
+                # del st.session_state["ganadores_lista"]
+                # del st.session_state["juego"]               
                 st.experimental_set_query_params(page="main")
                 st.rerun()
         try:
@@ -223,6 +225,7 @@ class UNO:
                         st.rerun()
                     elif modalidad == "Libre":
                         pass
+        
         except Exception as e:
             st.warning("Por favor, seleccione un jugador válido para continuar.")
                 
@@ -333,10 +336,7 @@ class UNO:
 
 
     def menu_Uno(self, juego):
-        st.session_state.juego = juego
-        self.valores = self.valores_UNO if juego=="UNO" else self.valores_UNO_FLIP if juego=="UNO FLIP" else self.valores_DOS
-        puntos = 0
-        partidas = 0
+        # Estilos de CSS para los botones
         st.markdown("""
             <style>
                 .css-1emrehy.edgvbvh3 { 
@@ -358,33 +358,62 @@ class UNO:
                 }
             </style>
             """, unsafe_allow_html=True)
+        # Si el juego cambia, reiniciamos los valores
+        if st.session_state.juego != juego:
+            st.session_state.modalidad = None  # Limpiar modalidad para que elija nuevamente
+            st.session_state.parametros = None  # Limpiar parámetros para que se pidan nuevamente
+            puntos = 0
+            partidas = 0
 
-        # Selección de modalidad
-        modalidad = st.selectbox(
-            "Estilos de Juego:",
-            ["Selecciona una modalidad..."] + ["Incremento", "Partidas", "Libre"],  # Lista correcta de modalidades
-            key="modalidad_selectbox"
-        )
+            # Establecer los valores para el juego
+            self.valores = self.valores_UNO if juego == "UNO" else self.valores_UNO_FLIP if juego == "UNO FLIP" else self.valores_DOS
 
-        # Dependiendo de la modalidad seleccionada, mostramos los parámetros específicos
-        if modalidad == "Incremento":
-            puntos = self.incremento_parametros()
+            # Selección de modalidad
+            modalidad = st.selectbox(
+                "Estilos de Juego:",
+                ["Selecciona una modalidad..."] + ["Incremento", "Partidas", "Libre"],  # Lista correcta de modalidades
+                key="modalidad_selectbox"
+            )
+            
+            if os.path.exists("jugadores.json"):
+                # Reinicia todos los valores de los jugadores a 0
+                for j in st.session_state.jugadores.keys():
+                    st.session_state.jugadores[j] = 0
+                self.gestor_jugadores.guardar_jugadores()
+            
+            # Dependiendo de la modalidad seleccionada, mostramos los parámetros específicos
+            if modalidad == "Incremento":
+                puntos = self.incremento_parametros()
 
-        elif modalidad == "Partidas":
-            partidas = self.partidas_parametros()
+            elif modalidad == "Partidas":
+                partidas = self.partidas_parametros()
+            
+            # Mostrar el botón de "Confirmar" solo si se seleccionó una modalidad válida
+            if modalidad != "Selecciona una modalidad..." and modalidad is not None:
+                if st.button("Confirmar"):                
+                    # Guardamos los valores en session_state
+                    st.session_state.modalidad = modalidad
+                    del st.session_state["ganadores_lista"]
+                    del st.session_state["contador_partidas"]
 
-        # Mostrar el botón de "Confirmar" solo si se seleccionó una modalidad válida
-        if modalidad != "Selecciona una modalidad..." and modalidad is not None:
-            if st.button("Confirmar"):                
-                # Guardamos los valores en session_state
-                st.session_state.modalidad = modalidad
-                if modalidad == "Libre":
-                    st.warning("Modalidad no disponible")
-                else:
-                    st.session_state.parametros = [puntos, partidas]
-                    st.experimental_set_query_params(page="seleccionar ganador")
-                    st.rerun()
+                    if modalidad == "Libre":
+                        st.warning("Modalidad no disponible")
+                    else:
+                        # Guardamos los parámetros seleccionados
+                        st.session_state.parametros = [puntos, partidas]
+                        st.experimental_set_query_params(page="seleccionar ganador")
+                        st.rerun()
+                        st.session_state.juego = juego
 
+
+        else:
+            # Recuperar los parámetros desde session_state si ya existen
+            st.experimental_set_query_params(page="seleccionar ganador")
+            st.rerun()
+
+
+
+        # Botón para volver al menú principal
         if st.button("Volver al Menú Principal"):
             st.experimental_set_query_params(page="main")
             st.rerun()

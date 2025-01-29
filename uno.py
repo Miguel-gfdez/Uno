@@ -53,11 +53,9 @@ class UNO:
         #st.write(f"Modo Partidas activado. Número de partidas establecido en: {self.n_partidas}")
 
     def seleccionar_ganador(self):
-        query_params = st.query_params
         modalidad = st.session_state.modalidad
         if modalidad == "Libre":
             st.warning("Modalidad no disponible")
-
         """Juega rondas hasta que haya un ganador."""
         if st.session_state.juego == "UNO":
             self.valores = self.valores_UNO
@@ -66,7 +64,7 @@ class UNO:
         elif st.session_state.juego == "DOS":
             self.valores = self.valores_DOS
 
-        # Actualizar cartas_seleccionadas con los nuevos valores
+        # Actualizar `cartas_seleccionadas` con los nuevos valores
         if (
             "cartas_seleccionadas" not in st.session_state
             or not isinstance(st.session_state.cartas_seleccionadas, dict)
@@ -107,14 +105,14 @@ class UNO:
         # Verifica si hay jugadores cargados, si no hay, muestra un mensaje de advertencia
         if not jugadores:
             st.warning("No hay jugadores cargados. Por favor, añada jugadores antes de continuar.")
-            return  # Salir de la función si no hay jugadores disponibles
-
+            return  # Salir de la función si no hay jugadores disponibles     
         ganador = st.selectbox(
-            "Selecciona el ganador de la ronda:",
-            ["Selecciona un Jugador..."] + list(jugadores.keys()),  # El primer elemento es una cadena vacía
-            key="ganador_selectbox"
-        )
+                "Selecciona el ganador de la ronda:",
+                ["Selecciona un Jugador..."] + list(jugadores.keys()),  # El primer elemento es una cadena vacía
+                key="ganador_selectbox"
+            )
         
+        modalidad = st.session_state.modalidad
         st.session_state.jugadores = jugadores
 
         if modalidad == "Incremento":
@@ -199,8 +197,8 @@ class UNO:
                 del st.session_state["parametros"]
                 del st.session_state["contador_partidas"]
                 del st.session_state["ganadores_lista"]
-                del st.session_state["juego"]
-                st.query_params(page="main")
+                del st.session_state["juego"]               
+                st.experimental_set_query_params(page="main")
                 st.rerun()
         try:
             with col1:
@@ -213,22 +211,20 @@ class UNO:
                         st.session_state.jugadores[ganador] += 1
                         self.gestor_jugadores.jugadores = st.session_state.jugadores
                         self.gestor_jugadores.guardar_jugadores()
-                        st.query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
+                        st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
                         st.rerun()
                     elif modalidad == "Incremento":
                         st.session_state.jugadores[ganador] += puntos_ronda
                         self.gestor_jugadores.jugadores = st.session_state.jugadores
                         self.gestor_jugadores.guardar_jugadores()
-                        st.query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
+                        st.experimental_set_query_params(page="procesar rondas", ganador=ganador, puntos_ronda=puntos_ronda)
                         st.rerun()
                     elif modalidad == "Libre":
                         pass
         except Exception as e:
             st.warning("Por favor, seleccione un jugador válido para continuar.")
-            st.warning(e)
                 
     def procesar_ronda(self, ganador, puntos_ronda):
-        query_params = st.query_params
         n_partidas = int(st.session_state.parametros[1]) if st.session_state.parametros[1] is not None else None
         puntos_maximos = int(st.session_state.parametros[0]) if st.session_state.parametros[0] is not None else None
         puntos_ronda = int(puntos_ronda)
@@ -266,7 +262,7 @@ class UNO:
                     del st.session_state["contador_partidas"]
                     del st.session_state["ganadores_lista"]
                     del st.session_state["juego"]
-                    st.query_params(page="main")
+                    st.experimental_set_query_params(page="main")
                     st.rerun()
                 else:
                     return
@@ -310,7 +306,7 @@ class UNO:
                     del st.session_state["contador_partidas"]
                     del st.session_state["ganadores_lista"]
                     del st.session_state["juego"]
-                    st.query_params(page="main")
+                    st.experimental_set_query_params(page="main")
                     st.rerun()
                 else:
                     return
@@ -328,14 +324,13 @@ class UNO:
 
         if st.button("Continuar"):
             st.session_state.contador_partidas += 1
-            st.query_params(page="seleccionar ganador")
+            st.experimental_set_query_params(page="seleccionar ganador")
             st.rerun()
         else:
             return
 
 
     def menu_Uno(self, juego):
-        query_params = st.query_params
         st.session_state.juego = juego
         self.valores = self.valores_UNO if juego=="UNO" else self.valores_UNO_FLIP if juego=="UNO FLIP" else self.valores_DOS
         puntos = 0
@@ -385,11 +380,11 @@ class UNO:
                     st.warning("Modalidad no disponible")
                 else:
                     st.session_state.parametros = [puntos, partidas]
-                    st.query_params(page="seleccionar ganador")
+                    st.experimental_set_query_params(page="seleccionar ganador")
                     st.rerun()
 
         if st.button("Volver al Menú Principal"):
-            st.query_params(page="main")
+            st.experimental_set_query_params(page="main")
             st.rerun()
 
 
@@ -397,7 +392,6 @@ def run():
     """Ejecuta la gestión de jugadores."""
     uno = UNO()
     uno.menu_Uno()
-
 
 
 

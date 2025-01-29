@@ -184,6 +184,8 @@ class UNO:
                     # Actualizar la tabla y puntos después de deshacer
                     st.write(f"Acción deshecha: {boton_presionado}")
                     st.write(f"Puntos Totales: {sum(self.valores[key] * value for key, value in st.session_state.cartas_seleccionadas.items())}")
+                del st.session_state["cartas_seleccionadas"]
+                
 
         col1, col2 = st.columns(2)  # Crear dos columnas para los botones
         with col2:
